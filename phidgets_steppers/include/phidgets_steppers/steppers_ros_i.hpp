@@ -146,6 +146,8 @@ class SteppersRosI final : public rclcpp::Node
     void positionChangeCallback(int channel, double position);
 
     void velocityChangeCallback(int channel, double velocity);
+
+    void stoppedCallback(int channel);
 };
 
 }  // namespace phidgets

@@ -49,7 +49,8 @@ class Steppers final
     explicit Steppers(int32_t serial_number, int hub_port,
                       bool is_hub_port_device,
                       std::function<void(int, double)> position_change_handler,
-                      std::function<void(int, double)> velocity_change_handler);
+                      std::function<void(int, double)> velocity_change_handler,
+                      std::function<void(int)> stopped_handler);
 
     ~Steppers();
 
@@ -96,6 +97,7 @@ class Steppers final
 
     void positionChangeHandler(int channel, double position) const;
     void velocityChangeHandler(int channel, double velocity) const;
+    void stoppedHandler(int channel) const;
 
   private:
     uint32_t stepper_count_;

@@ -34,11 +34,13 @@ namespace phidgets {
 Stepper::Stepper(int32_t serial_number, int hub_port, bool is_hub_port_device,
                  int channel,
                  std::function<void(int, double)> position_change_handler,
-                 std::function<void(int, double)> velocity_change_handler)
+                 std::function<void(int, double)> velocity_change_handler,
+                 std::function<void(int)> stopped_handler)
     : serial_number_(serial_number),
       channel_(channel),
       position_change_handler_(position_change_handler),
-      velocity_change_handler_(velocity_change_handler)
+      velocity_change_handler_(velocity_change_handler),
+      stopped_handler_(stopped_handler)
 {
     PhidgetReturnCode ret = PhidgetStepper_create(&stepper_handle_);
     if (ret != EPHIDGET_OK)
@@ -68,6 +70,16 @@ Stepper::Stepper(int32_t serial_number, int hub_port, bool is_hub_port_device,
     {
         throw Phidget22Error(
             "Failed to set velocity change handler for Stepper channel " +
+                std::to_string(channel),
+            ret);
+    }
+
+    ret = PhidgetStepper_setOnStoppedHandler(stepper_handle_, StoppedHandler,
+                                             this);
+    if (ret != EPHIDGET_OK)
+    {
+        throw Phidget22Error(
+            "Failed to set stopped handler for Stepper channel " +
                 std::to_string(channel),
             ret);
     }
@@ -602,6 +614,11 @@ void Stepper::velocityChangeHandler(double velocity) const
     velocity_change_handler_(channel_, velocity);
 }
 
+void Stepper::stoppedHandler() const
+{
+    stopped_handler_(channel_);
+}
+
 void Stepper::PositionChangeHandler(PhidgetStepperHandle /* stepper_handle */,
                                     void *ctx, double position)
 {
@@ -612,6 +629,12 @@ void Stepper::VelocityChangeHandler(PhidgetStepperHandle /* stepper_handle */,
                                     void *ctx, double velocity)
 {
     ((Stepper *)ctx)->velocityChangeHandler(velocity);
+}
+
+void Stepper::StoppedHandler(PhidgetStepperHandle /* stepper_handle */,
+                             void *ctx)
+{
+    ((Stepper *)ctx)->stoppedHandler();
 }
 
 }  // namespace phidgets

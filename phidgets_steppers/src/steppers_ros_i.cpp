@@ -327,7 +327,9 @@ SteppersRosI::SteppersRosI(const rclcpp::NodeOptions& options)
             std::bind(&SteppersRosI::positionChangeCallback, this,
                       std::placeholders::_1, std::placeholders::_2),
             std::bind(&SteppersRosI::velocityChangeCallback, this,
-                      std::placeholders::_1, std::placeholders::_2));
+                      std::placeholders::_1, std::placeholders::_2),
+            std::bind(&SteppersRosI::stoppedCallback, this,
+                      std::placeholders::_1));
 
         n_steppers = steppers_->getStepperCount();
         if (n_steppers != 1)
@@ -467,6 +469,11 @@ void SteppersRosI::velocityChangeCallback(int channel, double velocity)
             publishLatestJointStates();
         }
     }
+}
+
+void SteppersRosI::stoppedCallback(int channel)
+{
+    (void)channel;  // remove unused parameter warning
 }
 
 }  // namespace phidgets

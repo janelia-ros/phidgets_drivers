@@ -46,7 +46,8 @@ class Stepper final
     explicit Stepper(int32_t serial_number, int hub_port,
                      bool is_hub_port_device, int channel,
                      std::function<void(int, double)> position_change_handler,
-                     std::function<void(int, double)> velocity_change_handler);
+                     std::function<void(int, double)> velocity_change_handler,
+                     std::function<void(int)> stopped_handler);
 
     ~Stepper();
 
@@ -90,18 +91,21 @@ class Stepper final
 
     void positionChangeHandler(double position) const;
     void velocityChangeHandler(double velocity) const;
+    void stoppedHandler() const;
 
   private:
     int32_t serial_number_;
     int channel_;
     std::function<void(int, double)> position_change_handler_;
     std::function<void(int, double)> velocity_change_handler_;
+    std::function<void(int)> stopped_handler_;
     PhidgetStepperHandle stepper_handle_;
 
     static void PositionChangeHandler(PhidgetStepperHandle stepper_handle,
                                       void *ctx, double position);
     static void VelocityChangeHandler(PhidgetStepperHandle stepper_handle,
                                       void *ctx, double velocity);
+    static void StoppedHandler(PhidgetStepperHandle stepper_handle, void *ctx);
 };
 
 }  // namespace phidgets

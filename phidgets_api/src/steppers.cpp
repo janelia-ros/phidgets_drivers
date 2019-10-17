@@ -33,7 +33,8 @@ namespace phidgets {
 
 Steppers::Steppers(int32_t serial_number, int hub_port, bool is_hub_port_device,
                    std::function<void(int, double)> position_change_handler,
-                   std::function<void(int, double)> velocity_change_handler)
+                   std::function<void(int, double)> velocity_change_handler,
+                   std::function<void(int)> stopped_handler)
 {
     PhidgetReturnCode ret;
 
@@ -68,7 +69,7 @@ Steppers::Steppers(int32_t serial_number, int hub_port, bool is_hub_port_device,
     {
         steppers_[i] = std::make_unique<Stepper>(
             serial_number, hub_port, is_hub_port_device, i,
-            position_change_handler, velocity_change_handler);
+            position_change_handler, velocity_change_handler, stopped_handler);
     }
 }
 
@@ -270,6 +271,11 @@ void Steppers::positionChangeHandler(int channel, double position) const
 void Steppers::velocityChangeHandler(int channel, double velocity) const
 {
     steppers_.at(channel)->velocityChangeHandler(velocity);
+}
+
+void Steppers::stoppedHandler(int channel) const
+{
+    steppers_.at(channel)->stoppedHandler();
 }
 
 }  // namespace phidgets
