@@ -20,9 +20,11 @@ set(msg_files
 )
 
 set(srv_files
-  "srv/GetStepperSettings.srv"
   "srv/GetStepperSettingRanges.srv"
+  "srv/GetStepperSettings.srv"
+  "srv/SetCurrentLimit.srv"
   "srv/SetDigitalOutput.srv"
+  "srv/SetEnabled.srv"
   "srv/SetFloat64.srv"
 )
 

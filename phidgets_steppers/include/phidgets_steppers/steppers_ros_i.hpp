@@ -41,8 +41,9 @@
 
 #include <phidgets_msgs/srv/get_stepper_setting_ranges.hpp>
 #include <phidgets_msgs/srv/get_stepper_settings.hpp>
+#include <phidgets_msgs/srv/set_current_limit.hpp>
+#include <phidgets_msgs/srv/set_enabled.hpp>
 #include <phidgets_msgs/srv/set_float64.hpp>
-#include <std_srvs/srv/set_bool.hpp>
 
 #include "phidgets_api/steppers.hpp"
 
@@ -58,16 +59,17 @@ class StepperServices final
     enum { SERVICE_NAME_LENGTH_MAX = 100 };
     Steppers* steppers_;
     int channel_;
-    rclcpp::Service<std_srvs::srv::SetBool>::SharedPtr set_enabled_service_;
+    rclcpp::Service<phidgets_msgs::srv::SetEnabled>::SharedPtr
+        set_enabled_service_;
     rclcpp::Service<phidgets_msgs::srv::SetFloat64>::SharedPtr
         set_target_position_service_;
     rclcpp::Service<phidgets_msgs::srv::SetFloat64>::SharedPtr
         set_velocity_limit_service_;
     rclcpp::Service<phidgets_msgs::srv::SetFloat64>::SharedPtr
         set_acceleration_service_;
-    rclcpp::Service<phidgets_msgs::srv::SetFloat64>::SharedPtr
+    rclcpp::Service<phidgets_msgs::srv::SetCurrentLimit>::SharedPtr
         set_current_limit_service_;
-    rclcpp::Service<phidgets_msgs::srv::SetFloat64>::SharedPtr
+    rclcpp::Service<phidgets_msgs::srv::SetCurrentLimit>::SharedPtr
         set_holding_current_limit_service_;
     rclcpp::Service<phidgets_msgs::srv::SetFloat64>::SharedPtr
         set_position_service_;
@@ -77,8 +79,8 @@ class StepperServices final
         get_setting_ranges_service_;
 
     void setEnabledCallback(
-        const std::shared_ptr<std_srvs::srv::SetBool::Request> req,
-        std::shared_ptr<std_srvs::srv::SetBool::Response> res);
+        const std::shared_ptr<phidgets_msgs::srv::SetEnabled::Request> req,
+        std::shared_ptr<phidgets_msgs::srv::SetEnabled::Response> res);
     void setTargetPositionCallback(
         const std::shared_ptr<phidgets_msgs::srv::SetFloat64::Request> req,
         std::shared_ptr<phidgets_msgs::srv::SetFloat64::Response> res);
@@ -89,11 +91,11 @@ class StepperServices final
         const std::shared_ptr<phidgets_msgs::srv::SetFloat64::Request> req,
         std::shared_ptr<phidgets_msgs::srv::SetFloat64::Response> res);
     void setCurrentLimitCallback(
-        const std::shared_ptr<phidgets_msgs::srv::SetFloat64::Request> req,
-        std::shared_ptr<phidgets_msgs::srv::SetFloat64::Response> res);
+        const std::shared_ptr<phidgets_msgs::srv::SetCurrentLimit::Request> req,
+        std::shared_ptr<phidgets_msgs::srv::SetCurrentLimit::Response> res);
     void setHoldingCurrentLimitCallback(
-        const std::shared_ptr<phidgets_msgs::srv::SetFloat64::Request> req,
-        std::shared_ptr<phidgets_msgs::srv::SetFloat64::Response> res);
+        const std::shared_ptr<phidgets_msgs::srv::SetCurrentLimit::Request> req,
+        std::shared_ptr<phidgets_msgs::srv::SetCurrentLimit::Response> res);
     void setPositionCallback(
         const std::shared_ptr<phidgets_msgs::srv::SetFloat64::Request> req,
         std::shared_ptr<phidgets_msgs::srv::SetFloat64::Response> res);

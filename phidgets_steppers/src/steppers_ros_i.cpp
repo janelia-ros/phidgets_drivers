@@ -49,7 +49,7 @@ StepperServices::StepperServices(Steppers* steppers, int channel,
 
     snprintf(service_name, SERVICE_NAME_LENGTH_MAX, "set_enabled%02d",
              (int)channel);
-    set_enabled_service_ = node->create_service<std_srvs::srv::SetBool>(
+    set_enabled_service_ = node->create_service<phidgets_msgs::srv::SetEnabled>(
         service_name, std::bind(&StepperServices::setEnabledCallback, this,
                                 std::placeholders::_1, std::placeholders::_2));
 
@@ -80,7 +80,7 @@ StepperServices::StepperServices(Steppers* steppers, int channel,
     snprintf(service_name, SERVICE_NAME_LENGTH_MAX, "set_current_limit%02d",
              (int)channel);
     set_current_limit_service_ =
-        node->create_service<phidgets_msgs::srv::SetFloat64>(
+        node->create_service<phidgets_msgs::srv::SetCurrentLimit>(
             service_name,
             std::bind(&StepperServices::setCurrentLimitCallback, this,
                       std::placeholders::_1, std::placeholders::_2));
@@ -88,7 +88,7 @@ StepperServices::StepperServices(Steppers* steppers, int channel,
     snprintf(service_name, SERVICE_NAME_LENGTH_MAX,
              "set_holding_current_limit%02d", (int)channel);
     set_holding_current_limit_service_ =
-        node->create_service<phidgets_msgs::srv::SetFloat64>(
+        node->create_service<phidgets_msgs::srv::SetCurrentLimit>(
             service_name,
             std::bind(&StepperServices::setHoldingCurrentLimitCallback, this,
                       std::placeholders::_1, std::placeholders::_2));
@@ -119,13 +119,13 @@ StepperServices::StepperServices(Steppers* steppers, int channel,
 }
 
 void StepperServices::setEnabledCallback(
-    const std::shared_ptr<std_srvs::srv::SetBool::Request> req,
-    std::shared_ptr<std_srvs::srv::SetBool::Response> res)
+    const std::shared_ptr<phidgets_msgs::srv::SetEnabled::Request> req,
+    std::shared_ptr<phidgets_msgs::srv::SetEnabled::Response> res)
 {
     bool success = true;
     try
     {
-        steppers_->setEngaged(channel_, req->data);
+        steppers_->setEngaged(channel_, req->enabled);
     } catch (const phidgets::Phidget22Error& err)
     {
         success = false;
@@ -179,13 +179,13 @@ void StepperServices::setAccelerationCallback(
 }
 
 void StepperServices::setCurrentLimitCallback(
-    const std::shared_ptr<phidgets_msgs::srv::SetFloat64::Request> req,
-    std::shared_ptr<phidgets_msgs::srv::SetFloat64::Response> res)
+    const std::shared_ptr<phidgets_msgs::srv::SetCurrentLimit::Request> req,
+    std::shared_ptr<phidgets_msgs::srv::SetCurrentLimit::Response> res)
 {
     bool success = true;
     try
     {
-        steppers_->setCurrentLimit(channel_, req->data);
+        steppers_->setCurrentLimit(channel_, req->current_limit);
     } catch (const phidgets::Phidget22Error& err)
     {
         success = false;
@@ -194,13 +194,13 @@ void StepperServices::setCurrentLimitCallback(
 }
 
 void StepperServices::setHoldingCurrentLimitCallback(
-    const std::shared_ptr<phidgets_msgs::srv::SetFloat64::Request> req,
-    std::shared_ptr<phidgets_msgs::srv::SetFloat64::Response> res)
+    const std::shared_ptr<phidgets_msgs::srv::SetCurrentLimit::Request> req,
+    std::shared_ptr<phidgets_msgs::srv::SetCurrentLimit::Response> res)
 {
     bool success = true;
     try
     {
-        steppers_->setHoldingCurrentLimit(channel_, req->data);
+        steppers_->setHoldingCurrentLimit(channel_, req->current_limit);
     } catch (const phidgets::Phidget22Error& err)
     {
         success = false;
@@ -474,6 +474,7 @@ void SteppersRosI::velocityChangeCallback(int channel, double velocity)
 void SteppersRosI::stoppedCallback(int channel)
 {
     (void)channel;  // remove unused parameter warning
+    RCLCPP_INFO(get_logger(), "Stopped!");
 }
 
 }  // namespace phidgets

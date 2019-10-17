@@ -3,18 +3,21 @@ Phidgets stepper ROS 2 driver
 
 This is the ROS 2 driver for Phidgets stepper.  The various topics, services, and parameters that the node operates with are listed below.
 
-Topics
-------
+Published Topics
+----------------
 * `/joint_states` (`sensor_msgs/JointState`) - A joint state message containing the current state of all steppers.
+
+Subscribed Topics
+-----------------
 
 Services
 --------
-* `/set_enabledXX` (`std_srvs/SetBool`) - Set true to enable/engage and false to disable/disengage stepper.  Must be set true before use.  One service is created for each stepper attached.
+* `/set_enabledXX` (`phidgets_msgs/SetEnabled`) - Set true to enable/engage and false to disable/disengage stepper.  Must be set true before use.  One service is created for each stepper attached.
 * `/set_target_positionXX` (`phidgets_msgs/SetFloat64`) - Set the stepper target position when in position control mode.  One service is created for each stepper attached.
 * `/set_velocity_limitXX` (`phidgets_msgs/SetFloat64`) - Set the stepper velocity limit.  Must be set before use.  One service is created for each stepper attached.
 * `/set_accelerationXX` (`phidgets_msgs/SetFloat64`) - Set the stepper acceleration.  One service is created for each stepper attached.
-* `/set_current_limitXX` (`phidgets_msgs/SetFloat64`) - Set the stepper current limit.  Must be set before use.  One service is created for each stepper attached.
-* `/set_holding_current_limitXX` (`phidgets_msgs/SetFloat64`) - Set the stepper holding current limit.  One service is created for each stepper attached.
+* `/set_current_limitXX` (`phidgets_msgs/SetCurrentLimit`) - Set the stepper current limit.  Must be set before use.  One service is created for each stepper attached.
+* `/set_holding_current_limitXX` (`phidgets_msgs/SetCurrentLimit`) - Set the stepper holding current limit.  One service is created for each stepper attached.
 * `/set_positionXX` (`phidgets_msgs/SetFloat64`) - Set the current position and target position a new value.  For example, setting the position to zero after homing.  One service is created for each stepper attached.
 * `/get_settingsXX` (`phidgets_msgs/GetStepperSettings`) - Get the values of the stepper settings. One service is created for each stepper attached.
 * `/get_setting_rangesXX` (`phidgets_msgs/GetStepperSettingRanges`) - Get the values of the stepper setting ranges. One service is created for each stepper attached.
@@ -38,10 +41,10 @@ Command Line Examples
 ros2 launch phidgets_steppers steppers-launch.py
 ros2 topic echo /joint_states
 ros2 service call /get_setting_ranges00 phidgets_msgs/GetStepperSettingRanges
-ros2 service call /set_current_limit00 phidgets_msgs/SetFloat64 "data: 1.0"
-ros2 service call /set_holding_current_limit00 phidgets_msgs/SetFloat64 "data: 0.5"
+ros2 service call /set_current_limit00 phidgets_msgs/SetCurrentLimit "current_limit: 1.0"
+ros2 service call /set_holding_current_limit00 phidgets_msgs/SetCurrentLimit "current_limit: 0.5"
 ros2 service call /get_settings00 phidgets_msgs/GetStepperSettings
-ros2 service call /set_enabled00 std_srvs/SetBool "data: true"
+ros2 service call /set_enabled00 phidgets_msgs/SetEnabled "enabled: true"
 ros2 service call /set_velocity_limit00 phidgets_msgs/SetFloat64 "data: 5000"
 ros2 service call /set_target_position00 phidgets_msgs/SetFloat64 "data: 10000"
 ros2 service call /set_position00 phidgets_msgs/SetFloat64 "data: 0"
