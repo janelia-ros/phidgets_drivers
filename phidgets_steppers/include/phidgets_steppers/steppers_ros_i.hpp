@@ -44,19 +44,20 @@
 #include <phidgets_msgs/srv/set_current_limit.hpp>
 #include <phidgets_msgs/srv/set_enabled.hpp>
 #include <phidgets_msgs/srv/set_float64.hpp>
+#include <phidgets_msgs/srv/set_position.hpp>
 
 #include "phidgets_api/steppers.hpp"
 
 namespace phidgets {
 
-class StepperServices final
+class StepperInterface final
 {
   public:
-    explicit StepperServices(Steppers* steppers, int channel,
-                             rclcpp::Node* node);
+    explicit StepperInterface(Steppers* steppers, int channel,
+                              rclcpp::Node* node);
 
   private:
-    enum { SERVICE_NAME_LENGTH_MAX = 100 };
+    enum { INTERFACE_NAME_LENGTH_MAX = 200 };
     Steppers* steppers_;
     int channel_;
     rclcpp::Service<phidgets_msgs::srv::SetEnabled>::SharedPtr
@@ -71,7 +72,7 @@ class StepperServices final
         set_current_limit_service_;
     rclcpp::Service<phidgets_msgs::srv::SetCurrentLimit>::SharedPtr
         set_holding_current_limit_service_;
-    rclcpp::Service<phidgets_msgs::srv::SetFloat64>::SharedPtr
+    rclcpp::Service<phidgets_msgs::srv::SetPosition>::SharedPtr
         set_position_service_;
     rclcpp::Service<phidgets_msgs::srv::GetStepperSettings>::SharedPtr
         get_settings_service_;
@@ -97,8 +98,8 @@ class StepperServices final
         const std::shared_ptr<phidgets_msgs::srv::SetCurrentLimit::Request> req,
         std::shared_ptr<phidgets_msgs::srv::SetCurrentLimit::Response> res);
     void setPositionCallback(
-        const std::shared_ptr<phidgets_msgs::srv::SetFloat64::Request> req,
-        std::shared_ptr<phidgets_msgs::srv::SetFloat64::Response> res);
+        const std::shared_ptr<phidgets_msgs::srv::SetPosition::Request> req,
+        std::shared_ptr<phidgets_msgs::srv::SetPosition::Response> res);
     void getSettingsCallback(
         const std::shared_ptr<phidgets_msgs::srv::GetStepperSettings::Request>
             req,
@@ -112,7 +113,7 @@ class StepperServices final
 };
 
 struct StepperDataToPub {
-    std::unique_ptr<StepperServices> stepper_srvs;
+    std::unique_ptr<StepperInterface> stepper_interface;
     std::string joint_name;
     double last_position_val;
     double last_velocity_val;
@@ -124,7 +125,7 @@ class SteppersRosI final : public rclcpp::Node
     explicit SteppersRosI(const rclcpp::NodeOptions& options);
 
   private:
-    enum { PARAMETER_NAME_LENGTH_MAX = 100 };
+    enum { PARAMETER_NAME_LENGTH_MAX = 200 };
     std::unique_ptr<Steppers> steppers_;
     std::mutex stepper_mutex_;
     std::vector<StepperDataToPub> stepper_data_to_pub_;

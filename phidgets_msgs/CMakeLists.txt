@@ -26,6 +26,7 @@ set(srv_files
   "srv/SetDigitalOutput.srv"
   "srv/SetEnabled.srv"
   "srv/SetFloat64.srv"
+  "srv/SetPosition.srv"
 )
 
 rosidl_generate_interfaces(${PROJECT_NAME}

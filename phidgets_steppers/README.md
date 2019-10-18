@@ -18,7 +18,7 @@ Services
 * `/set_accelerationXX` (`phidgets_msgs/SetFloat64`) - Set the stepper acceleration.  One service is created for each stepper attached.
 * `/set_current_limitXX` (`phidgets_msgs/SetCurrentLimit`) - Set the stepper current limit.  Must be set before use.  One service is created for each stepper attached.
 * `/set_holding_current_limitXX` (`phidgets_msgs/SetCurrentLimit`) - Set the stepper holding current limit.  One service is created for each stepper attached.
-* `/set_positionXX` (`phidgets_msgs/SetFloat64`) - Set the current position and target position a new value.  For example, setting the position to zero after homing.  One service is created for each stepper attached.
+* `/set_positionXX` (`phidgets_msgs/SetPosition`) - Set the current position and target position a new value.  For example, setting the position to zero after homing.  One service is created for each stepper attached.
 * `/get_settingsXX` (`phidgets_msgs/GetStepperSettings`) - Get the values of the stepper settings. One service is created for each stepper attached.
 * `/get_setting_rangesXX` (`phidgets_msgs/GetStepperSettingRanges`) - Get the values of the stepper setting ranges. One service is created for each stepper attached.
 

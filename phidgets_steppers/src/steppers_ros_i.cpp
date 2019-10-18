@@ -41,84 +41,84 @@
 
 namespace phidgets {
 
-StepperServices::StepperServices(Steppers* steppers, int channel,
-                                 rclcpp::Node* node)
+StepperInterface::StepperInterface(Steppers* steppers, int channel,
+                                   rclcpp::Node* node)
     : steppers_(steppers), channel_(channel)
 {
-    char service_name[SERVICE_NAME_LENGTH_MAX];
+    char service_name[INTERFACE_NAME_LENGTH_MAX];
 
-    snprintf(service_name, SERVICE_NAME_LENGTH_MAX, "set_enabled%02d",
+    snprintf(service_name, INTERFACE_NAME_LENGTH_MAX, "set_enabled%02d",
              (int)channel);
     set_enabled_service_ = node->create_service<phidgets_msgs::srv::SetEnabled>(
-        service_name, std::bind(&StepperServices::setEnabledCallback, this,
+        service_name, std::bind(&StepperInterface::setEnabledCallback, this,
                                 std::placeholders::_1, std::placeholders::_2));
 
-    snprintf(service_name, SERVICE_NAME_LENGTH_MAX, "set_target_position%02d",
+    snprintf(service_name, INTERFACE_NAME_LENGTH_MAX, "set_target_position%02d",
              (int)channel);
     set_target_position_service_ =
         node->create_service<phidgets_msgs::srv::SetFloat64>(
             service_name,
-            std::bind(&StepperServices::setTargetPositionCallback, this,
+            std::bind(&StepperInterface::setTargetPositionCallback, this,
                       std::placeholders::_1, std::placeholders::_2));
 
-    snprintf(service_name, SERVICE_NAME_LENGTH_MAX, "set_velocity_limit%02d",
+    snprintf(service_name, INTERFACE_NAME_LENGTH_MAX, "set_velocity_limit%02d",
              (int)channel);
     set_velocity_limit_service_ =
         node->create_service<phidgets_msgs::srv::SetFloat64>(
             service_name,
-            std::bind(&StepperServices::setVelocityLimitCallback, this,
+            std::bind(&StepperInterface::setVelocityLimitCallback, this,
                       std::placeholders::_1, std::placeholders::_2));
 
-    snprintf(service_name, SERVICE_NAME_LENGTH_MAX, "set_acceleration%02d",
+    snprintf(service_name, INTERFACE_NAME_LENGTH_MAX, "set_acceleration%02d",
              (int)channel);
     set_acceleration_service_ =
         node->create_service<phidgets_msgs::srv::SetFloat64>(
             service_name,
-            std::bind(&StepperServices::setAccelerationCallback, this,
+            std::bind(&StepperInterface::setAccelerationCallback, this,
                       std::placeholders::_1, std::placeholders::_2));
 
-    snprintf(service_name, SERVICE_NAME_LENGTH_MAX, "set_current_limit%02d",
+    snprintf(service_name, INTERFACE_NAME_LENGTH_MAX, "set_current_limit%02d",
              (int)channel);
     set_current_limit_service_ =
         node->create_service<phidgets_msgs::srv::SetCurrentLimit>(
             service_name,
-            std::bind(&StepperServices::setCurrentLimitCallback, this,
+            std::bind(&StepperInterface::setCurrentLimitCallback, this,
                       std::placeholders::_1, std::placeholders::_2));
 
-    snprintf(service_name, SERVICE_NAME_LENGTH_MAX,
+    snprintf(service_name, INTERFACE_NAME_LENGTH_MAX,
              "set_holding_current_limit%02d", (int)channel);
     set_holding_current_limit_service_ =
         node->create_service<phidgets_msgs::srv::SetCurrentLimit>(
             service_name,
-            std::bind(&StepperServices::setHoldingCurrentLimitCallback, this,
+            std::bind(&StepperInterface::setHoldingCurrentLimitCallback, this,
                       std::placeholders::_1, std::placeholders::_2));
 
-    snprintf(service_name, SERVICE_NAME_LENGTH_MAX, "set_position%02d",
+    snprintf(service_name, INTERFACE_NAME_LENGTH_MAX, "set_position%02d",
              (int)channel);
     set_position_service_ =
-        node->create_service<phidgets_msgs::srv::SetFloat64>(
+        node->create_service<phidgets_msgs::srv::SetPosition>(
             service_name,
-            std::bind(&StepperServices::setPositionCallback, this,
+            std::bind(&StepperInterface::setPositionCallback, this,
                       std::placeholders::_1, std::placeholders::_2));
 
-    snprintf(service_name, SERVICE_NAME_LENGTH_MAX, "get_settings%02d",
+    snprintf(service_name, INTERFACE_NAME_LENGTH_MAX, "get_settings%02d",
              (int)channel);
     get_settings_service_ =
         node->create_service<phidgets_msgs::srv::GetStepperSettings>(
             service_name,
-            std::bind(&StepperServices::getSettingsCallback, this,
+            std::bind(&StepperInterface::getSettingsCallback, this,
                       std::placeholders::_1, std::placeholders::_2));
 
-    snprintf(service_name, SERVICE_NAME_LENGTH_MAX, "get_setting_ranges%02d",
+    snprintf(service_name, INTERFACE_NAME_LENGTH_MAX, "get_setting_ranges%02d",
              (int)channel);
     get_setting_ranges_service_ =
         node->create_service<phidgets_msgs::srv::GetStepperSettingRanges>(
             service_name,
-            std::bind(&StepperServices::getSettingRangesCallback, this,
+            std::bind(&StepperInterface::getSettingRangesCallback, this,
                       std::placeholders::_1, std::placeholders::_2));
 }
 
-void StepperServices::setEnabledCallback(
+void StepperInterface::setEnabledCallback(
     const std::shared_ptr<phidgets_msgs::srv::SetEnabled::Request> req,
     std::shared_ptr<phidgets_msgs::srv::SetEnabled::Response> res)
 {
@@ -133,7 +133,7 @@ void StepperServices::setEnabledCallback(
     res->success = success;
 }
 
-void StepperServices::setTargetPositionCallback(
+void StepperInterface::setTargetPositionCallback(
     const std::shared_ptr<phidgets_msgs::srv::SetFloat64::Request> req,
     std::shared_ptr<phidgets_msgs::srv::SetFloat64::Response> res)
 {
@@ -148,7 +148,7 @@ void StepperServices::setTargetPositionCallback(
     res->success = success;
 }
 
-void StepperServices::setVelocityLimitCallback(
+void StepperInterface::setVelocityLimitCallback(
     const std::shared_ptr<phidgets_msgs::srv::SetFloat64::Request> req,
     std::shared_ptr<phidgets_msgs::srv::SetFloat64::Response> res)
 {
@@ -163,7 +163,7 @@ void StepperServices::setVelocityLimitCallback(
     res->success = success;
 }
 
-void StepperServices::setAccelerationCallback(
+void StepperInterface::setAccelerationCallback(
     const std::shared_ptr<phidgets_msgs::srv::SetFloat64::Request> req,
     std::shared_ptr<phidgets_msgs::srv::SetFloat64::Response> res)
 {
@@ -178,7 +178,7 @@ void StepperServices::setAccelerationCallback(
     res->success = success;
 }
 
-void StepperServices::setCurrentLimitCallback(
+void StepperInterface::setCurrentLimitCallback(
     const std::shared_ptr<phidgets_msgs::srv::SetCurrentLimit::Request> req,
     std::shared_ptr<phidgets_msgs::srv::SetCurrentLimit::Response> res)
 {
@@ -193,7 +193,7 @@ void StepperServices::setCurrentLimitCallback(
     res->success = success;
 }
 
-void StepperServices::setHoldingCurrentLimitCallback(
+void StepperInterface::setHoldingCurrentLimitCallback(
     const std::shared_ptr<phidgets_msgs::srv::SetCurrentLimit::Request> req,
     std::shared_ptr<phidgets_msgs::srv::SetCurrentLimit::Response> res)
 {
@@ -208,15 +208,15 @@ void StepperServices::setHoldingCurrentLimitCallback(
     res->success = success;
 }
 
-void StepperServices::setPositionCallback(
-    const std::shared_ptr<phidgets_msgs::srv::SetFloat64::Request> req,
-    std::shared_ptr<phidgets_msgs::srv::SetFloat64::Response> res)
+void StepperInterface::setPositionCallback(
+    const std::shared_ptr<phidgets_msgs::srv::SetPosition::Request> req,
+    std::shared_ptr<phidgets_msgs::srv::SetPosition::Response> res)
 {
     bool success = true;
     try
     {
         double position = steppers_->getPosition(channel_);
-        double position_offset = req->data - position;
+        double position_offset = req->position - position;
         steppers_->addPositionOffset(channel_, position_offset);
         position = steppers_->getPosition(channel_);
         steppers_->positionChangeHandler(channel_, position);
@@ -227,7 +227,7 @@ void StepperServices::setPositionCallback(
     res->success = success;
 }
 
-void StepperServices::getSettingsCallback(
+void StepperInterface::getSettingsCallback(
     const std::shared_ptr<phidgets_msgs::srv::GetStepperSettings::Request> req,
     std::shared_ptr<phidgets_msgs::srv::GetStepperSettings::Response> res)
 {
@@ -249,7 +249,7 @@ void StepperServices::getSettingsCallback(
     res->success = success;
 }
 
-void StepperServices::getSettingRangesCallback(
+void StepperInterface::getSettingRangesCallback(
     const std::shared_ptr<phidgets_msgs::srv::GetStepperSettingRanges::Request>
         req,
     std::shared_ptr<phidgets_msgs::srv::GetStepperSettingRanges::Response> res)
@@ -367,9 +367,9 @@ SteppersRosI::SteppersRosI(const rclcpp::NodeOptions& options)
             // misreports it so fix by setting to 0.0 explicitly
             steppers_->setVelocityLimit(channel, 0.0);
 
-            stepper_data_to_pub_[channel].stepper_srvs =
-                std::make_unique<StepperServices>(steppers_.get(), channel,
-                                                  this);
+            stepper_data_to_pub_[channel].stepper_interface =
+                std::make_unique<StepperInterface>(steppers_.get(), channel,
+                                                   this);
 
             // initialize current limits to zero to prevent motor damage
             steppers_->setCurrentLimit(channel, 0.0);
