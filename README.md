@@ -15,11 +15,11 @@ Drivers for various [Phidgets](https://www.phidgets.com) devices. This package i
 
   * [`phidgets_accelerometer`](phidgets_accelerometer/README.md)
 
-  * [`phidgets_analog_inputs`](phidgets_analog_inputs/README.md)
+  * [`phidgets_analog_input`](phidgets_analog_input/README.md)
 
-  * [`phidgets_digital_inputs`](phidgets_digital_inputs/README.md)
+  * [`phidgets_digital_input`](phidgets_digital_input/README.md)
 
-  * [`phidgets_digital_outputs`](phidgets_digital_outputs/README.md)
+  * [`phidgets_digital_output`](phidgets_digital_output/README.md)
 
   * [`phidgets_gyroscope`](phidgets_gyroscope/README.md)
 
@@ -29,7 +29,7 @@ Drivers for various [Phidgets](https://www.phidgets.com) devices. This package i
 
   * [`phidgets_magnetometer`](phidgets_magnetometer/README.md)
 
-  * [`phidgets_motors`](phidgets_motors/README.md)
+  * [`phidgets_motor`](phidgets_motor/README.md)
 
   * [`phidgets_spatial`](phidgets_spatial/README.md)
 
