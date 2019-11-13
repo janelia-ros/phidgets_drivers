@@ -36,37 +36,35 @@
 
 #include "phidgets_api/phidget22.hpp"
 
-namespace phidgets {
-
+namespace phidgets
+{
 class Gyroscope final
 {
-  public:
-    PHIDGET22_NO_COPY_NO_MOVE_NO_ASSIGN(Gyroscope)
+public:
+  PHIDGET22_NO_COPY_NO_MOVE_NO_ASSIGN(Gyroscope)
 
-    explicit Gyroscope(
-        int32_t serial_number, int hub_port, bool is_hub_port_device,
-        std::function<void(const double[3], double)> data_handler);
+  explicit Gyroscope(int32_t serial_number, int hub_port, bool is_hub_port_device,
+                     std::function<void(const double[3], double)> data_handler);
 
-    ~Gyroscope();
+  ~Gyroscope();
 
-    int32_t getSerialNumber() const noexcept;
+  int32_t getSerialNumber() const noexcept;
 
-    void getAngularRate(double &x, double &y, double &z,
-                        double &timestamp) const;
+  void getAngularRate(double& x, double& y, double& z, double& timestamp) const;
 
-    void setDataInterval(uint32_t interval_ms) const;
+  void setDataInterval(uint32_t interval_ms) const;
 
-    void zero() const;
+  void zero() const;
 
-    void dataHandler(const double angular_rate[3], double timestamp) const;
+  void dataHandler(const double angular_rate[3], double timestamp) const;
 
-  private:
-    int32_t serial_number_;
-    std::function<void(const double[3], double)> data_handler_;
-    PhidgetGyroscopeHandle gyro_handle_;
+private:
+  int32_t serial_number_;
+  std::function<void(const double[3], double)> data_handler_;
+  PhidgetGyroscopeHandle gyro_handle_;
 
-    static void DataHandler(PhidgetGyroscopeHandle input_handle, void *ctx,
-                            const double angular_rate[3], double timestamp);
+  static void DataHandler(PhidgetGyroscopeHandle input_handle, void* ctx, const double angular_rate[3],
+                          double timestamp);
 };
 
 }  // namespace phidgets

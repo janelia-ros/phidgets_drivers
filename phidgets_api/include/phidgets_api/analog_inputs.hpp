@@ -37,30 +37,29 @@
 #include "phidgets_api/analog_input.hpp"
 #include "phidgets_api/phidget22.hpp"
 
-namespace phidgets {
-
+namespace phidgets
+{
 class AnalogInputs final
 {
-  public:
-    PHIDGET22_NO_COPY_NO_MOVE_NO_ASSIGN(AnalogInputs)
+public:
+  PHIDGET22_NO_COPY_NO_MOVE_NO_ASSIGN(AnalogInputs)
 
-    explicit AnalogInputs(int32_t serial_number, int hub_port,
-                          bool is_hub_port_device,
-                          std::function<void(int, double)> input_handler);
+  explicit AnalogInputs(int32_t serial_number, int hub_port, bool is_hub_port_device,
+                        std::function<void(int, double)> input_handler);
 
-    ~AnalogInputs();
+  ~AnalogInputs();
 
-    int32_t getSerialNumber() const noexcept;
+  int32_t getSerialNumber() const noexcept;
 
-    uint32_t getInputCount() const noexcept;
+  uint32_t getInputCount() const noexcept;
 
-    double getSensorValue(int index) const;
+  double getSensorValue(int index) const;
 
-    void setDataInterval(int index, uint32_t data_interval_ms) const;
+  void setDataInterval(int index, uint32_t data_interval_ms) const;
 
-  private:
-    uint32_t input_count_;
-    std::vector<std::unique_ptr<AnalogInput>> ais_;
+private:
+  uint32_t input_count_;
+  std::vector<std::unique_ptr<AnalogInput>> ais_;
 };
 
 }  // namespace phidgets

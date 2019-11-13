@@ -36,35 +36,33 @@
 
 #include "phidgets_api/phidget22.hpp"
 
-namespace phidgets {
-
+namespace phidgets
+{
 class Accelerometer final
 {
-  public:
-    PHIDGET22_NO_COPY_NO_MOVE_NO_ASSIGN(Accelerometer)
+public:
+  PHIDGET22_NO_COPY_NO_MOVE_NO_ASSIGN(Accelerometer)
 
-    explicit Accelerometer(
-        int32_t serial_number, int hub_port, bool is_hub_port_device,
-        std::function<void(const double[3], double)> data_handler);
+  explicit Accelerometer(int32_t serial_number, int hub_port, bool is_hub_port_device,
+                         std::function<void(const double[3], double)> data_handler);
 
-    ~Accelerometer();
+  ~Accelerometer();
 
-    int32_t getSerialNumber() const noexcept;
+  int32_t getSerialNumber() const noexcept;
 
-    void getAcceleration(double &x, double &y, double &z,
-                         double &timestamp) const;
+  void getAcceleration(double& x, double& y, double& z, double& timestamp) const;
 
-    void setDataInterval(uint32_t interval_ms) const;
+  void setDataInterval(uint32_t interval_ms) const;
 
-    void dataHandler(const double acceleration[3], double timestamp) const;
+  void dataHandler(const double acceleration[3], double timestamp) const;
 
-  private:
-    int32_t serial_number_;
-    std::function<void(const double[3], double)> data_handler_;
-    PhidgetAccelerometerHandle accel_handle_;
+private:
+  int32_t serial_number_;
+  std::function<void(const double[3], double)> data_handler_;
+  PhidgetAccelerometerHandle accel_handle_;
 
-    static void DataHandler(PhidgetAccelerometerHandle input_handle, void *ctx,
-                            const double acceleration[3], double timestamp);
+  static void DataHandler(PhidgetAccelerometerHandle input_handle, void* ctx, const double acceleration[3],
+                          double timestamp);
 };
 
 }  // namespace phidgets

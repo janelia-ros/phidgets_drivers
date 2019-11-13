@@ -35,84 +35,68 @@
 #include "phidgets_api/digital_input.hpp"
 #include "phidgets_api/phidget22.hpp"
 
-namespace phidgets {
-
-DigitalInput::DigitalInput(int32_t serial_number, int hub_port,
-                           bool is_hub_port_device, int channel,
-                           std::function<void(int, int)> input_handler)
-    : serial_number_(serial_number),
-      channel_(channel),
-      input_handler_(input_handler)
+namespace phidgets
 {
-    PhidgetReturnCode ret = PhidgetDigitalInput_create(&di_handle_);
+DigitalInput::DigitalInput(int32_t serial_number, int hub_port, bool is_hub_port_device, int channel,
+                           std::function<void(int, int)> input_handler)
+  : serial_number_(serial_number), channel_(channel), input_handler_(input_handler)
+{
+  PhidgetReturnCode ret = PhidgetDigitalInput_create(&di_handle_);
+  if (ret != EPHIDGET_OK)
+  {
+    throw Phidget22Error("Failed to create DigitalInput handle for channel " + std::to_string(channel), ret);
+  }
+
+  helpers::openWaitForAttachment(reinterpret_cast<PhidgetHandle>(di_handle_), serial_number, hub_port,
+                                 is_hub_port_device, channel);
+
+  ret = PhidgetDigitalInput_setOnStateChangeHandler(di_handle_, StateChangeHandler, this);
+  if (ret != EPHIDGET_OK)
+  {
+    throw Phidget22Error("Failed to set change handler for DigitalInput channel " + std::to_string(channel), ret);
+  }
+
+  if (serial_number_ == -1)
+  {
+    ret = Phidget_getDeviceSerialNumber(reinterpret_cast<PhidgetHandle>(di_handle_), &serial_number_);
     if (ret != EPHIDGET_OK)
     {
-        throw Phidget22Error(
-            "Failed to create DigitalInput handle for channel " +
-                std::to_string(channel),
-            ret);
+      throw Phidget22Error("Failed to get serial number for digital input channel " + std::to_string(channel), ret);
     }
-
-    helpers::openWaitForAttachment(reinterpret_cast<PhidgetHandle>(di_handle_),
-                                   serial_number, hub_port, is_hub_port_device,
-                                   channel);
-
-    ret = PhidgetDigitalInput_setOnStateChangeHandler(di_handle_,
-                                                      StateChangeHandler, this);
-    if (ret != EPHIDGET_OK)
-    {
-        throw Phidget22Error(
-            "Failed to set change handler for DigitalInput channel " +
-                std::to_string(channel),
-            ret);
-    }
-
-    if (serial_number_ == -1)
-    {
-        ret = Phidget_getDeviceSerialNumber(
-            reinterpret_cast<PhidgetHandle>(di_handle_), &serial_number_);
-        if (ret != EPHIDGET_OK)
-        {
-            throw Phidget22Error(
-                "Failed to get serial number for digital input channel " +
-                    std::to_string(channel),
-                ret);
-        }
-    }
+  }
 }
 
 DigitalInput::~DigitalInput()
 {
-    PhidgetHandle handle = reinterpret_cast<PhidgetHandle>(di_handle_);
-    helpers::closeAndDelete(&handle);
+  PhidgetHandle handle = reinterpret_cast<PhidgetHandle>(di_handle_);
+  helpers::closeAndDelete(&handle);
 }
 
 int32_t DigitalInput::getSerialNumber() const noexcept
 {
-    return serial_number_;
+  return serial_number_;
 }
 
 bool DigitalInput::getInputValue() const
 {
-    int state;
-    PhidgetReturnCode ret = PhidgetDigitalInput_getState(di_handle_, &state);
-    if (ret != EPHIDGET_OK)
-    {
-        throw Phidget22Error("Failed to get digital input state", ret);
-    }
+  int state;
+  PhidgetReturnCode ret = PhidgetDigitalInput_getState(di_handle_, &state);
+  if (ret != EPHIDGET_OK)
+  {
+    throw Phidget22Error("Failed to get digital input state", ret);
+  }
 
-    return !!state;
+  return !!state;
 }
 
 void DigitalInput::stateChangeHandler(int state) const
 {
-    input_handler_(channel_, state);
+  input_handler_(channel_, state);
 }
 
-void DigitalInput::StateChangeHandler(
-    PhidgetDigitalInputHandle /* input_handle */, void *ctx, int state)
+void DigitalInput::StateChangeHandler(PhidgetDigitalInputHandle /* input_handle */, void* ctx, int state)
 {
-    ((DigitalInput *)ctx)->stateChangeHandler(state);
+  ((DigitalInput*)ctx)->stateChangeHandler(state);
 }
 
 }  // namespace phidgets

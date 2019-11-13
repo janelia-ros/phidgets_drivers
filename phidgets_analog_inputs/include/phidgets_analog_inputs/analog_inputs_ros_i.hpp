@@ -39,32 +39,33 @@
 
 #include "phidgets_api/analog_inputs.hpp"
 
-namespace phidgets {
-
-struct ValToPub {
-    rclcpp::Publisher<std_msgs::msg::Float64>::SharedPtr pub;
-    double last_val{0.0};
-    double gain{1.0};
-    double offset{0.0};
+namespace phidgets
+{
+struct ValToPub
+{
+  rclcpp::Publisher<std_msgs::msg::Float64>::SharedPtr pub;
+  double last_val{ 0.0 };
+  double gain{ 1.0 };
+  double offset{ 0.0 };
 };
 
 class AnalogInputsRosI final : public rclcpp::Node
 {
-  public:
-    explicit AnalogInputsRosI(const rclcpp::NodeOptions& options);
+public:
+  explicit AnalogInputsRosI(const rclcpp::NodeOptions& options);
 
-  private:
-    std::unique_ptr<AnalogInputs> ais_;
-    std::mutex ai_mutex_;
-    std::vector<ValToPub> val_to_pubs_;
+private:
+  std::unique_ptr<AnalogInputs> ais_;
+  std::mutex ai_mutex_;
+  std::vector<ValToPub> val_to_pubs_;
 
-    void timerCallback();
-    rclcpp::TimerBase::SharedPtr timer_;
-    double publish_rate_;
+  void timerCallback();
+  rclcpp::TimerBase::SharedPtr timer_;
+  double publish_rate_;
 
-    void publishLatest(int index);
+  void publishLatest(int index);
 
-    void sensorChangeCallback(int index, double sensor_value);
+  void sensorChangeCallback(int index, double sensor_value);
 };
 
 }  // namespace phidgets

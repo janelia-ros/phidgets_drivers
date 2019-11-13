@@ -36,35 +36,33 @@
 
 #include "phidgets_api/phidget22.hpp"
 
-namespace phidgets {
-
+namespace phidgets
+{
 class AnalogInput final
 {
-  public:
-    PHIDGET22_NO_COPY_NO_MOVE_NO_ASSIGN(AnalogInput)
+public:
+  PHIDGET22_NO_COPY_NO_MOVE_NO_ASSIGN(AnalogInput)
 
-    explicit AnalogInput(int32_t serial_number, int hub_port,
-                         bool is_hub_port_device, int channel,
-                         std::function<void(int, double)> input_handler);
+  explicit AnalogInput(int32_t serial_number, int hub_port, bool is_hub_port_device, int channel,
+                       std::function<void(int, double)> input_handler);
 
-    ~AnalogInput();
+  ~AnalogInput();
 
-    int32_t getSerialNumber() const noexcept;
+  int32_t getSerialNumber() const noexcept;
 
-    double getSensorValue() const;
+  double getSensorValue() const;
 
-    void setDataInterval(uint32_t data_interval_ms) const;
+  void setDataInterval(uint32_t data_interval_ms) const;
 
-    void voltageChangeHandler(double sensorValue) const;
+  void voltageChangeHandler(double sensorValue) const;
 
-  private:
-    int32_t serial_number_;
-    int channel_;
-    std::function<void(int, double)> input_handler_;
-    PhidgetVoltageInputHandle ai_handle_;
+private:
+  int32_t serial_number_;
+  int channel_;
+  std::function<void(int, double)> input_handler_;
+  PhidgetVoltageInputHandle ai_handle_;
 
-    static void VoltageChangeHandler(PhidgetVoltageInputHandle input_handle,
-                                     void *ctx, double sensorValue);
+  static void VoltageChangeHandler(PhidgetVoltageInputHandle input_handle, void* ctx, double sensorValue);
 };
 
 }  // namespace phidgets

@@ -34,60 +34,56 @@
 #include "phidgets_api/ir.hpp"
 #include "phidgets_api/phidget22.hpp"
 
-namespace phidgets {
-
-IR::IR(int32_t serial_number,
-       std::function<void(const char *, uint32_t, int)> code_handler)
-    : serial_number_(serial_number), code_handler_(code_handler)
+namespace phidgets
 {
-    // create the handle
-    PhidgetReturnCode ret = PhidgetIR_create(&ir_handle_);
+IR::IR(int32_t serial_number, std::function<void(const char*, uint32_t, int)> code_handler)
+  : serial_number_(serial_number), code_handler_(code_handler)
+{
+  // create the handle
+  PhidgetReturnCode ret = PhidgetIR_create(&ir_handle_);
+  if (ret != EPHIDGET_OK)
+  {
+    throw Phidget22Error("Failed to create IR handle", ret);
+  }
+
+  helpers::openWaitForAttachment(reinterpret_cast<PhidgetHandle>(ir_handle_), serial_number, 0, false, 0);
+
+  // register ir data callback
+  ret = PhidgetIR_setOnCodeHandler(ir_handle_, CodeHandler, this);
+  if (ret != EPHIDGET_OK)
+  {
+    throw Phidget22Error("Failed to set code handler for ir", ret);
+  }
+
+  if (serial_number_ == -1)
+  {
+    ret = Phidget_getDeviceSerialNumber(reinterpret_cast<PhidgetHandle>(ir_handle_), &serial_number_);
     if (ret != EPHIDGET_OK)
     {
-        throw Phidget22Error("Failed to create IR handle", ret);
+      throw Phidget22Error("Failed to get serial number for IR", ret);
     }
-
-    helpers::openWaitForAttachment(reinterpret_cast<PhidgetHandle>(ir_handle_),
-                                   serial_number, 0, false, 0);
-
-    // register ir data callback
-    ret = PhidgetIR_setOnCodeHandler(ir_handle_, CodeHandler, this);
-    if (ret != EPHIDGET_OK)
-    {
-        throw Phidget22Error("Failed to set code handler for ir", ret);
-    }
-
-    if (serial_number_ == -1)
-    {
-        ret = Phidget_getDeviceSerialNumber(
-            reinterpret_cast<PhidgetHandle>(ir_handle_), &serial_number_);
-        if (ret != EPHIDGET_OK)
-        {
-            throw Phidget22Error("Failed to get serial number for IR", ret);
-        }
-    }
+  }
 }
 
 IR::~IR()
 {
-    PhidgetHandle handle = reinterpret_cast<PhidgetHandle>(ir_handle_);
-    helpers::closeAndDelete(&handle);
+  PhidgetHandle handle = reinterpret_cast<PhidgetHandle>(ir_handle_);
+  helpers::closeAndDelete(&handle);
 }
 
 int32_t IR::getSerialNumber() const noexcept
 {
-    return serial_number_;
+  return serial_number_;
 }
 
-void IR::codeHandler(const char *code, uint32_t bit_count, int is_repeat) const
+void IR::codeHandler(const char* code, uint32_t bit_count, int is_repeat) const
 {
-    code_handler_(code, bit_count, is_repeat);
+  code_handler_(code, bit_count, is_repeat);
 }
 
-void IR::CodeHandler(PhidgetIRHandle /* ir */, void *ctx, const char *code,
-                     uint32_t bit_count, int is_repeat)
+void IR::CodeHandler(PhidgetIRHandle /* ir */, void* ctx, const char* code, uint32_t bit_count, int is_repeat)
 {
-    ((IR *)ctx)->codeHandler(code, bit_count, is_repeat);
+  ((IR*)ctx)->codeHandler(code, bit_count, is_repeat);
 }
 
 }  // namespace phidgets

@@ -39,81 +39,66 @@
 #include "phidgets_digital_outputs/digital_outputs_ros_i.hpp"
 #include "phidgets_msgs/srv/set_digital_output.hpp"
 
-namespace phidgets {
-
+namespace phidgets
+{
 DigitalOutputsRosI::DigitalOutputsRosI(const rclcpp::NodeOptions& options)
-    : rclcpp::Node("phidgets_digital_outputs_node", options)
+  : rclcpp::Node("phidgets_digital_outputs_node", options)
 {
-    setvbuf(stdout, NULL, _IONBF, BUFSIZ);
+  setvbuf(stdout, NULL, _IONBF, BUFSIZ);
 
-    RCLCPP_INFO(get_logger(), "Starting Phidgets Digital Outputs");
+  RCLCPP_INFO(get_logger(), "Starting Phidgets Digital Outputs");
 
-    int serial_num =
-        this->declare_parameter("serial", -1);  // default open any device
+  int serial_num = this->declare_parameter("serial", -1);  // default open any device
 
-    int hub_port = this->declare_parameter(
-        "hub_port", 0);  // only used if the device is on a VINT hub_port
+  int hub_port = this->declare_parameter("hub_port", 0);  // only used if the device is on a VINT hub_port
 
-    // only used if the device is on a VINT hub_port
-    bool is_hub_port_device =
-        this->declare_parameter("is_hub_port_device", false);
+  // only used if the device is on a VINT hub_port
+  bool is_hub_port_device = this->declare_parameter("is_hub_port_device", false);
 
-    RCLCPP_INFO(
-        get_logger(),
-        "Connecting to Phidgets DigitalOutputs serial %d, hub port %d ...",
-        serial_num, hub_port);
+  RCLCPP_INFO(get_logger(), "Connecting to Phidgets DigitalOutputs serial %d, hub port %d ...", serial_num, hub_port);
 
-    try
-    {
-        dos_ = std::make_unique<DigitalOutputs>(serial_num, hub_port,
-                                                is_hub_port_device);
+  try
+  {
+    dos_ = std::make_unique<DigitalOutputs>(serial_num, hub_port, is_hub_port_device);
+  }
+  catch (const Phidget22Error& err)
+  {
+    RCLCPP_ERROR(get_logger(), "DigitalOutputs: %s", err.what());
+    throw;
+  }
 
-    } catch (const Phidget22Error& err)
-    {
-        RCLCPP_ERROR(get_logger(), "DigitalOutputs: %s", err.what());
-        throw;
-    }
-
-    int n_out = dos_->getOutputCount();
-    RCLCPP_INFO(get_logger(), "Connected to serial %d, %d outputs",
-                dos_->getSerialNumber(), n_out);
-    out_subs_.resize(n_out);
-    for (int i = 0; i < n_out; i++)
-    {
-        char topicname[] = "digital_output00";
-        snprintf(topicname, sizeof(topicname), "digital_output%02d", i);
-        out_subs_[i] = std::make_unique<DigitalOutputSetter>(dos_.get(), i,
-                                                             this, topicname);
-    }
-    out_srv_ = this->create_service<phidgets_msgs::srv::SetDigitalOutput>(
-        "set_digital_output",
-        std::bind(&DigitalOutputsRosI::setSrvCallback, this,
-                  std::placeholders::_1, std::placeholders::_2));
+  int n_out = dos_->getOutputCount();
+  RCLCPP_INFO(get_logger(), "Connected to serial %d, %d outputs", dos_->getSerialNumber(), n_out);
+  out_subs_.resize(n_out);
+  for (int i = 0; i < n_out; i++)
+  {
+    char topicname[] = "digital_output00";
+    snprintf(topicname, sizeof(topicname), "digital_output%02d", i);
+    out_subs_[i] = std::make_unique<DigitalOutputSetter>(dos_.get(), i, this, topicname);
+  }
+  out_srv_ = this->create_service<phidgets_msgs::srv::SetDigitalOutput>(
+      "set_digital_output",
+      std::bind(&DigitalOutputsRosI::setSrvCallback, this, std::placeholders::_1, std::placeholders::_2));
 }
 
-void DigitalOutputsRosI::setSrvCallback(
-    const std::shared_ptr<phidgets_msgs::srv::SetDigitalOutput::Request> req,
-    std::shared_ptr<phidgets_msgs::srv::SetDigitalOutput::Response> res)
+void DigitalOutputsRosI::setSrvCallback(const std::shared_ptr<phidgets_msgs::srv::SetDigitalOutput::Request> req,
+                                        std::shared_ptr<phidgets_msgs::srv::SetDigitalOutput::Response> res)
 {
-    dos_->setOutputState(req->index, req->state);
-    res->success = true;
+  dos_->setOutputState(req->index, req->state);
+  res->success = true;
 }
 
-DigitalOutputSetter::DigitalOutputSetter(DigitalOutputs* dos, int index,
-                                         DigitalOutputsRosI* node,
+DigitalOutputSetter::DigitalOutputSetter(DigitalOutputs* dos, int index, DigitalOutputsRosI* node,
                                          const std::string& topicname)
-    : dos_(dos), index_(index)
+  : dos_(dos), index_(index)
 {
-    subscription_ = node->create_subscription<std_msgs::msg::Bool>(
-        topicname, rclcpp::QoS(10),
-        std::bind(&DigitalOutputSetter::setMsgCallback, this,
-                  std::placeholders::_1));
+  subscription_ = node->create_subscription<std_msgs::msg::Bool>(
+      topicname, rclcpp::QoS(10), std::bind(&DigitalOutputSetter::setMsgCallback, this, std::placeholders::_1));
 }
 
-void DigitalOutputSetter::setMsgCallback(
-    const std_msgs::msg::Bool::SharedPtr msg)
+void DigitalOutputSetter::setMsgCallback(const std_msgs::msg::Bool::SharedPtr msg)
 {
-    dos_->setOutputState(index_, msg->data);
+  dos_->setOutputState(index_, msg->data);
 }
 
 }  // namespace phidgets

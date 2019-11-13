@@ -39,442 +39,396 @@
 #include "phidgets_api/steppers.hpp"
 #include "phidgets_steppers/steppers_ros_i.hpp"
 
-namespace phidgets {
-
-StepperInterface::StepperInterface(Steppers* steppers, int channel,
-                                   rclcpp::Node* node)
-    : steppers_(steppers), channel_(channel)
+namespace phidgets
 {
-    char service_name[INTERFACE_NAME_LENGTH_MAX];
+StepperInterface::StepperInterface(Steppers* steppers, int channel, rclcpp::Node* node)
+  : steppers_(steppers), channel_(channel)
+{
+  char service_name[INTERFACE_NAME_LENGTH_MAX];
 
-    snprintf(service_name, INTERFACE_NAME_LENGTH_MAX, "set_enabled%02d",
-             (int)channel);
-    set_enabled_service_ = node->create_service<phidgets_msgs::srv::SetEnabled>(
-        service_name, std::bind(&StepperInterface::setEnabledCallback, this,
-                                std::placeholders::_1, std::placeholders::_2));
+  snprintf(service_name, INTERFACE_NAME_LENGTH_MAX, "set_enabled%02d", (int)channel);
+  set_enabled_service_ = node->create_service<phidgets_msgs::srv::SetEnabled>(
+      service_name,
+      std::bind(&StepperInterface::setEnabledCallback, this, std::placeholders::_1, std::placeholders::_2));
 
-    snprintf(service_name, INTERFACE_NAME_LENGTH_MAX, "set_target_position%02d",
-             (int)channel);
-    set_target_position_service_ =
-        node->create_service<phidgets_msgs::srv::SetFloat64>(
-            service_name,
-            std::bind(&StepperInterface::setTargetPositionCallback, this,
-                      std::placeholders::_1, std::placeholders::_2));
+  snprintf(service_name, INTERFACE_NAME_LENGTH_MAX, "set_target_position%02d", (int)channel);
+  set_target_position_service_ = node->create_service<phidgets_msgs::srv::SetFloat64>(
+      service_name,
+      std::bind(&StepperInterface::setTargetPositionCallback, this, std::placeholders::_1, std::placeholders::_2));
 
-    snprintf(service_name, INTERFACE_NAME_LENGTH_MAX, "set_velocity_limit%02d",
-             (int)channel);
-    set_velocity_limit_service_ =
-        node->create_service<phidgets_msgs::srv::SetFloat64>(
-            service_name,
-            std::bind(&StepperInterface::setVelocityLimitCallback, this,
-                      std::placeholders::_1, std::placeholders::_2));
+  snprintf(service_name, INTERFACE_NAME_LENGTH_MAX, "set_velocity_limit%02d", (int)channel);
+  set_velocity_limit_service_ = node->create_service<phidgets_msgs::srv::SetFloat64>(
+      service_name,
+      std::bind(&StepperInterface::setVelocityLimitCallback, this, std::placeholders::_1, std::placeholders::_2));
 
-    snprintf(service_name, INTERFACE_NAME_LENGTH_MAX, "set_acceleration%02d",
-             (int)channel);
-    set_acceleration_service_ =
-        node->create_service<phidgets_msgs::srv::SetFloat64>(
-            service_name,
-            std::bind(&StepperInterface::setAccelerationCallback, this,
-                      std::placeholders::_1, std::placeholders::_2));
+  snprintf(service_name, INTERFACE_NAME_LENGTH_MAX, "set_acceleration%02d", (int)channel);
+  set_acceleration_service_ = node->create_service<phidgets_msgs::srv::SetFloat64>(
+      service_name,
+      std::bind(&StepperInterface::setAccelerationCallback, this, std::placeholders::_1, std::placeholders::_2));
 
-    snprintf(service_name, INTERFACE_NAME_LENGTH_MAX, "set_current_limit%02d",
-             (int)channel);
-    set_current_limit_service_ =
-        node->create_service<phidgets_msgs::srv::SetCurrentLimit>(
-            service_name,
-            std::bind(&StepperInterface::setCurrentLimitCallback, this,
-                      std::placeholders::_1, std::placeholders::_2));
+  snprintf(service_name, INTERFACE_NAME_LENGTH_MAX, "set_current_limit%02d", (int)channel);
+  set_current_limit_service_ = node->create_service<phidgets_msgs::srv::SetCurrentLimit>(
+      service_name,
+      std::bind(&StepperInterface::setCurrentLimitCallback, this, std::placeholders::_1, std::placeholders::_2));
 
-    snprintf(service_name, INTERFACE_NAME_LENGTH_MAX,
-             "set_holding_current_limit%02d", (int)channel);
-    set_holding_current_limit_service_ =
-        node->create_service<phidgets_msgs::srv::SetCurrentLimit>(
-            service_name,
-            std::bind(&StepperInterface::setHoldingCurrentLimitCallback, this,
-                      std::placeholders::_1, std::placeholders::_2));
+  snprintf(service_name, INTERFACE_NAME_LENGTH_MAX, "set_holding_current_limit%02d", (int)channel);
+  set_holding_current_limit_service_ = node->create_service<phidgets_msgs::srv::SetCurrentLimit>(
+      service_name,
+      std::bind(&StepperInterface::setHoldingCurrentLimitCallback, this, std::placeholders::_1, std::placeholders::_2));
 
-    snprintf(service_name, INTERFACE_NAME_LENGTH_MAX, "set_position%02d",
-             (int)channel);
-    set_position_service_ =
-        node->create_service<phidgets_msgs::srv::SetPosition>(
-            service_name,
-            std::bind(&StepperInterface::setPositionCallback, this,
-                      std::placeholders::_1, std::placeholders::_2));
+  snprintf(service_name, INTERFACE_NAME_LENGTH_MAX, "set_position%02d", (int)channel);
+  set_position_service_ = node->create_service<phidgets_msgs::srv::SetPosition>(
+      service_name,
+      std::bind(&StepperInterface::setPositionCallback, this, std::placeholders::_1, std::placeholders::_2));
 
-    snprintf(service_name, INTERFACE_NAME_LENGTH_MAX, "get_settings%02d",
-             (int)channel);
-    get_settings_service_ =
-        node->create_service<phidgets_msgs::srv::GetStepperSettings>(
-            service_name,
-            std::bind(&StepperInterface::getSettingsCallback, this,
-                      std::placeholders::_1, std::placeholders::_2));
+  snprintf(service_name, INTERFACE_NAME_LENGTH_MAX, "get_settings%02d", (int)channel);
+  get_settings_service_ = node->create_service<phidgets_msgs::srv::GetStepperSettings>(
+      service_name,
+      std::bind(&StepperInterface::getSettingsCallback, this, std::placeholders::_1, std::placeholders::_2));
 
-    snprintf(service_name, INTERFACE_NAME_LENGTH_MAX, "get_setting_ranges%02d",
-             (int)channel);
-    get_setting_ranges_service_ =
-        node->create_service<phidgets_msgs::srv::GetStepperSettingRanges>(
-            service_name,
-            std::bind(&StepperInterface::getSettingRangesCallback, this,
-                      std::placeholders::_1, std::placeholders::_2));
+  snprintf(service_name, INTERFACE_NAME_LENGTH_MAX, "get_setting_ranges%02d", (int)channel);
+  get_setting_ranges_service_ = node->create_service<phidgets_msgs::srv::GetStepperSettingRanges>(
+      service_name,
+      std::bind(&StepperInterface::getSettingRangesCallback, this, std::placeholders::_1, std::placeholders::_2));
 }
 
-void StepperInterface::setEnabledCallback(
-    const std::shared_ptr<phidgets_msgs::srv::SetEnabled::Request> req,
-    std::shared_ptr<phidgets_msgs::srv::SetEnabled::Response> res)
+void StepperInterface::setEnabledCallback(const std::shared_ptr<phidgets_msgs::srv::SetEnabled::Request> req,
+                                          std::shared_ptr<phidgets_msgs::srv::SetEnabled::Response> res)
 {
-    bool success = true;
-    try
-    {
-        steppers_->setEngaged(channel_, req->enabled);
-    } catch (const phidgets::Phidget22Error& err)
-    {
-        success = false;
-    }
-    res->success = success;
+  bool success = true;
+  try
+  {
+    steppers_->setEngaged(channel_, req->enabled);
+  }
+  catch (const phidgets::Phidget22Error& err)
+  {
+    success = false;
+  }
+  res->success = success;
 }
 
-void StepperInterface::setTargetPositionCallback(
-    const std::shared_ptr<phidgets_msgs::srv::SetFloat64::Request> req,
-    std::shared_ptr<phidgets_msgs::srv::SetFloat64::Response> res)
+void StepperInterface::setTargetPositionCallback(const std::shared_ptr<phidgets_msgs::srv::SetFloat64::Request> req,
+                                                 std::shared_ptr<phidgets_msgs::srv::SetFloat64::Response> res)
 {
-    bool success = true;
-    try
-    {
-        steppers_->setTargetPosition(channel_, req->data);
-    } catch (const phidgets::Phidget22Error& err)
-    {
-        success = false;
-    }
-    res->success = success;
+  bool success = true;
+  try
+  {
+    steppers_->setTargetPosition(channel_, req->data);
+  }
+  catch (const phidgets::Phidget22Error& err)
+  {
+    success = false;
+  }
+  res->success = success;
 }
 
-void StepperInterface::setVelocityLimitCallback(
-    const std::shared_ptr<phidgets_msgs::srv::SetFloat64::Request> req,
-    std::shared_ptr<phidgets_msgs::srv::SetFloat64::Response> res)
+void StepperInterface::setVelocityLimitCallback(const std::shared_ptr<phidgets_msgs::srv::SetFloat64::Request> req,
+                                                std::shared_ptr<phidgets_msgs::srv::SetFloat64::Response> res)
 {
-    bool success = true;
-    try
-    {
-        steppers_->setVelocityLimit(channel_, req->data);
-    } catch (const phidgets::Phidget22Error& err)
-    {
-        success = false;
-    }
-    res->success = success;
+  bool success = true;
+  try
+  {
+    steppers_->setVelocityLimit(channel_, req->data);
+  }
+  catch (const phidgets::Phidget22Error& err)
+  {
+    success = false;
+  }
+  res->success = success;
 }
 
-void StepperInterface::setAccelerationCallback(
-    const std::shared_ptr<phidgets_msgs::srv::SetFloat64::Request> req,
-    std::shared_ptr<phidgets_msgs::srv::SetFloat64::Response> res)
+void StepperInterface::setAccelerationCallback(const std::shared_ptr<phidgets_msgs::srv::SetFloat64::Request> req,
+                                               std::shared_ptr<phidgets_msgs::srv::SetFloat64::Response> res)
 {
-    bool success = true;
-    try
-    {
-        steppers_->setAcceleration(channel_, req->data);
-    } catch (const phidgets::Phidget22Error& err)
-    {
-        success = false;
-    }
-    res->success = success;
+  bool success = true;
+  try
+  {
+    steppers_->setAcceleration(channel_, req->data);
+  }
+  catch (const phidgets::Phidget22Error& err)
+  {
+    success = false;
+  }
+  res->success = success;
 }
 
-void StepperInterface::setCurrentLimitCallback(
-    const std::shared_ptr<phidgets_msgs::srv::SetCurrentLimit::Request> req,
-    std::shared_ptr<phidgets_msgs::srv::SetCurrentLimit::Response> res)
+void StepperInterface::setCurrentLimitCallback(const std::shared_ptr<phidgets_msgs::srv::SetCurrentLimit::Request> req,
+                                               std::shared_ptr<phidgets_msgs::srv::SetCurrentLimit::Response> res)
 {
-    bool success = true;
-    try
-    {
-        steppers_->setCurrentLimit(channel_, req->current_limit);
-    } catch (const phidgets::Phidget22Error& err)
-    {
-        success = false;
-    }
-    res->success = success;
+  bool success = true;
+  try
+  {
+    steppers_->setCurrentLimit(channel_, req->current_limit);
+  }
+  catch (const phidgets::Phidget22Error& err)
+  {
+    success = false;
+  }
+  res->success = success;
 }
 
 void StepperInterface::setHoldingCurrentLimitCallback(
     const std::shared_ptr<phidgets_msgs::srv::SetCurrentLimit::Request> req,
     std::shared_ptr<phidgets_msgs::srv::SetCurrentLimit::Response> res)
 {
-    bool success = true;
-    try
-    {
-        steppers_->setHoldingCurrentLimit(channel_, req->current_limit);
-    } catch (const phidgets::Phidget22Error& err)
-    {
-        success = false;
-    }
-    res->success = success;
+  bool success = true;
+  try
+  {
+    steppers_->setHoldingCurrentLimit(channel_, req->current_limit);
+  }
+  catch (const phidgets::Phidget22Error& err)
+  {
+    success = false;
+  }
+  res->success = success;
 }
 
-void StepperInterface::setPositionCallback(
-    const std::shared_ptr<phidgets_msgs::srv::SetPosition::Request> req,
-    std::shared_ptr<phidgets_msgs::srv::SetPosition::Response> res)
+void StepperInterface::setPositionCallback(const std::shared_ptr<phidgets_msgs::srv::SetPosition::Request> req,
+                                           std::shared_ptr<phidgets_msgs::srv::SetPosition::Response> res)
 {
-    bool success = true;
-    try
-    {
-        double position = steppers_->getPosition(channel_);
-        double position_offset = req->position - position;
-        steppers_->addPositionOffset(channel_, position_offset);
-        position = steppers_->getPosition(channel_);
-        steppers_->positionChangeHandler(channel_, position);
-    } catch (const phidgets::Phidget22Error& err)
-    {
-        success = false;
-    }
-    res->success = success;
+  bool success = true;
+  try
+  {
+    double position = steppers_->getPosition(channel_);
+    double position_offset = req->position - position;
+    steppers_->addPositionOffset(channel_, position_offset);
+    position = steppers_->getPosition(channel_);
+    steppers_->positionChangeHandler(channel_, position);
+  }
+  catch (const phidgets::Phidget22Error& err)
+  {
+    success = false;
+  }
+  res->success = success;
 }
 
-void StepperInterface::getSettingsCallback(
-    const std::shared_ptr<phidgets_msgs::srv::GetStepperSettings::Request> req,
-    std::shared_ptr<phidgets_msgs::srv::GetStepperSettings::Response> res)
+void StepperInterface::getSettingsCallback(const std::shared_ptr<phidgets_msgs::srv::GetStepperSettings::Request> req,
+                                           std::shared_ptr<phidgets_msgs::srv::GetStepperSettings::Response> res)
 {
-    (void)req;  // remove unused parameter warning
-    bool success = true;
-    try
-    {
-        res->enabled = steppers_->getEngaged(channel_);
-        res->target_position = steppers_->getTargetPosition(channel_);
-        res->velocity_limit = steppers_->getVelocityLimit(channel_);
-        res->acceleration = steppers_->getAcceleration(channel_);
-        res->current_limit = steppers_->getCurrentLimit(channel_);
-        res->holding_current_limit =
-            steppers_->getHoldingCurrentLimit(channel_);
-    } catch (const phidgets::Phidget22Error& err)
-    {
-        success = false;
-    }
-    res->success = success;
+  (void)req;  // remove unused parameter warning
+  bool success = true;
+  try
+  {
+    res->enabled = steppers_->getEngaged(channel_);
+    res->target_position = steppers_->getTargetPosition(channel_);
+    res->velocity_limit = steppers_->getVelocityLimit(channel_);
+    res->acceleration = steppers_->getAcceleration(channel_);
+    res->current_limit = steppers_->getCurrentLimit(channel_);
+    res->holding_current_limit = steppers_->getHoldingCurrentLimit(channel_);
+  }
+  catch (const phidgets::Phidget22Error& err)
+  {
+    success = false;
+  }
+  res->success = success;
 }
 
 void StepperInterface::getSettingRangesCallback(
-    const std::shared_ptr<phidgets_msgs::srv::GetStepperSettingRanges::Request>
-        req,
+    const std::shared_ptr<phidgets_msgs::srv::GetStepperSettingRanges::Request> req,
     std::shared_ptr<phidgets_msgs::srv::GetStepperSettingRanges::Response> res)
 {
-    (void)req;  // remove unused parameter warning
-    bool success = true;
-    try
-    {
-        res->position.min = steppers_->getMinPosition(channel_);
-        res->position.max = steppers_->getMaxPosition(channel_);
-        res->velocity_limit.min = steppers_->getMinVelocityLimit(channel_);
-        res->velocity_limit.max = steppers_->getMaxVelocityLimit(channel_);
-        res->acceleration.min = steppers_->getMinAcceleration(channel_);
-        res->acceleration.max = steppers_->getMaxAcceleration(channel_);
-        res->current_limit.min = steppers_->getMinCurrentLimit(channel_);
-        res->current_limit.max = steppers_->getMaxCurrentLimit(channel_);
-    } catch (const phidgets::Phidget22Error& err)
-    {
-        success = false;
-    }
-    res->success = success;
+  (void)req;  // remove unused parameter warning
+  bool success = true;
+  try
+  {
+    res->position.min = steppers_->getMinPosition(channel_);
+    res->position.max = steppers_->getMaxPosition(channel_);
+    res->velocity_limit.min = steppers_->getMinVelocityLimit(channel_);
+    res->velocity_limit.max = steppers_->getMaxVelocityLimit(channel_);
+    res->acceleration.min = steppers_->getMinAcceleration(channel_);
+    res->acceleration.max = steppers_->getMaxAcceleration(channel_);
+    res->current_limit.min = steppers_->getMinCurrentLimit(channel_);
+    res->current_limit.max = steppers_->getMaxCurrentLimit(channel_);
+  }
+  catch (const phidgets::Phidget22Error& err)
+  {
+    success = false;
+  }
+  res->success = success;
 }
 
-SteppersRosI::SteppersRosI(const rclcpp::NodeOptions& options)
-    : rclcpp::Node("phidgets_steppers_node", options)
+SteppersRosI::SteppersRosI(const rclcpp::NodeOptions& options) : rclcpp::Node("phidgets_steppers_node", options)
 {
-    setvbuf(stdout, NULL, _IONBF, BUFSIZ);
+  setvbuf(stdout, NULL, _IONBF, BUFSIZ);
 
-    RCLCPP_INFO(get_logger(), "Starting Phidgets Steppers");
+  RCLCPP_INFO(get_logger(), "Starting Phidgets Steppers");
 
-    int serial_num =
-        this->declare_parameter("serial", -1);  // default open any device
+  int serial_num = this->declare_parameter("serial", -1);  // default open any device
 
-    int hub_port = this->declare_parameter(
-        "hub_port", 0);  // only used if the device is on a VINT hub_port
+  int hub_port = this->declare_parameter("hub_port", 0);  // only used if the device is on a VINT hub_port
 
-    RCLCPP_INFO(get_logger(),
-                "Connecting to Phidgets Steppers serial %d, hub port %d ...",
-                serial_num, hub_port);
+  RCLCPP_INFO(get_logger(), "Connecting to Phidgets Steppers serial %d, hub port %d ...", serial_num, hub_port);
 
-    int data_interval_ms = this->declare_parameter("data_interval_ms", 250);
+  int data_interval_ms = this->declare_parameter("data_interval_ms", 250);
 
-    publish_rate_ = this->declare_parameter("publish_rate", 0.0);
-    if (publish_rate_ > 1000.0)
+  publish_rate_ = this->declare_parameter("publish_rate", 0.0);
+  if (publish_rate_ > 1000.0)
+  {
+    throw std::runtime_error("Publish rate must be <= 1000");
+  }
+
+  int watchdog_interval_ms = this->declare_parameter("watchdog_interval_ms", 1000);
+  if ((watchdog_interval_ms < 500.0) || (watchdog_interval_ms > 10000.0))
+  {
+    throw std::runtime_error("Watchdog interval must be >= 500 and <= 10000");
+  }
+  // divide watchdog interval by 4 to abide rule about 1/3 failsafe time
+  // update
+  watchdog_timer_ = this->create_wall_timer(std::chrono::milliseconds(static_cast<int64_t>(watchdog_interval_ms / 4)),
+                                            std::bind(&SteppersRosI::watchdogTimerCallback, this));
+
+  frame_id_ = this->declare_parameter("frame_id", "stepper");
+
+  // We take the mutex here and don't unlock until the end of the constructor
+  // to prevent a callback from trying to use the publisher before we are
+  // finished setting up.
+  std::lock_guard<std::mutex> lock(stepper_mutex_);
+
+  int n_steppers;
+  try
+  {
+    steppers_ = std::make_unique<Steppers>(
+        serial_num, hub_port, false,
+        std::bind(&SteppersRosI::positionChangeCallback, this, std::placeholders::_1, std::placeholders::_2),
+        std::bind(&SteppersRosI::velocityChangeCallback, this, std::placeholders::_1, std::placeholders::_2),
+        std::bind(&SteppersRosI::stoppedCallback, this, std::placeholders::_1));
+
+    n_steppers = steppers_->getStepperCount();
+    if (n_steppers != 1)
     {
-        throw std::runtime_error("Publish rate must be <= 1000");
+      RCLCPP_INFO(get_logger(), "Connected to serial %d, %d steppers", steppers_->getSerialNumber(), n_steppers);
+    }
+    else
+    {
+      RCLCPP_INFO(get_logger(), "Connected to serial %d, %d stepper", steppers_->getSerialNumber(), n_steppers);
     }
 
-    int watchdog_interval_ms =
-        this->declare_parameter("watchdog_interval_ms", 1000);
-    if ((watchdog_interval_ms < 500.0) || (watchdog_interval_ms > 10000.0))
+    stepper_data_to_pub_.resize(n_steppers);
+    for (size_t channel = 0; channel < stepper_data_to_pub_.size(); channel++)
     {
-        throw std::runtime_error(
-            "Watchdog interval must be >= 500 and <= 10000");
+      steppers_->setDataInterval(channel, data_interval_ms);
+
+      char parameter_name[PARAMETER_NAME_LENGTH_MAX];
+      sprintf(parameter_name, "joint_name%02d", (int)channel);
+      stepper_data_to_pub_[channel].joint_name = this->declare_parameter(parameter_name, parameter_name);
+
+      sprintf(parameter_name, "rescale_factor%02d", (int)channel);
+      double rescale_factor = this->declare_parameter(parameter_name, 1.0);
+      steppers_->setRescaleFactor(channel, rescale_factor);
+
+      sprintf(parameter_name, "position_control_mode%02d", (int)channel);
+      bool position_control_mode = this->declare_parameter(parameter_name, true);
+      steppers_->setStepControlMode(channel, position_control_mode);
+
+      // setting position control mode sets velocity limit to 0 but
+      // misreports it so fix by setting to 0.0 explicitly
+      steppers_->setVelocityLimit(channel, 0.0);
+
+      stepper_data_to_pub_[channel].stepper_interface =
+          std::make_unique<StepperInterface>(steppers_.get(), channel, this);
+
+      // initialize current limits to zero to prevent motor damage
+      steppers_->setCurrentLimit(channel, 0.0);
+      steppers_->setHoldingCurrentLimit(channel, 0.0);
+
+      steppers_->enableFailsafe(channel, watchdog_interval_ms);
+
+      stepper_data_to_pub_[channel].last_position_val = steppers_->getPosition(channel);
+      stepper_data_to_pub_[channel].last_velocity_val = steppers_->getVelocity(channel);
     }
-    // divide watchdog interval by 4 to abide rule about 1/3 failsafe time
-    // update
-    watchdog_timer_ = this->create_wall_timer(
-        std::chrono::milliseconds(
-            static_cast<int64_t>(watchdog_interval_ms / 4)),
-        std::bind(&SteppersRosI::watchdogTimerCallback, this));
+  }
+  catch (const Phidget22Error& err)
+  {
+    RCLCPP_ERROR(get_logger(), "Steppers: %s", err.what());
+    throw;
+  }
 
-    frame_id_ = this->declare_parameter("frame_id", "stepper");
+  stepper_pub_ = this->create_publisher<sensor_msgs::msg::JointState>("joint_states", 100);
 
-    // We take the mutex here and don't unlock until the end of the constructor
-    // to prevent a callback from trying to use the publisher before we are
-    // finished setting up.
-    std::lock_guard<std::mutex> lock(stepper_mutex_);
-
-    int n_steppers;
-    try
-    {
-        steppers_ = std::make_unique<Steppers>(
-            serial_num, hub_port, false,
-            std::bind(&SteppersRosI::positionChangeCallback, this,
-                      std::placeholders::_1, std::placeholders::_2),
-            std::bind(&SteppersRosI::velocityChangeCallback, this,
-                      std::placeholders::_1, std::placeholders::_2),
-            std::bind(&SteppersRosI::stoppedCallback, this,
-                      std::placeholders::_1));
-
-        n_steppers = steppers_->getStepperCount();
-        if (n_steppers != 1)
-        {
-            RCLCPP_INFO(get_logger(), "Connected to serial %d, %d steppers",
-                        steppers_->getSerialNumber(), n_steppers);
-        } else
-        {
-            RCLCPP_INFO(get_logger(), "Connected to serial %d, %d stepper",
-                        steppers_->getSerialNumber(), n_steppers);
-        }
-
-        stepper_data_to_pub_.resize(n_steppers);
-        for (size_t channel = 0; channel < stepper_data_to_pub_.size();
-             channel++)
-        {
-            steppers_->setDataInterval(channel, data_interval_ms);
-
-            char parameter_name[PARAMETER_NAME_LENGTH_MAX];
-            sprintf(parameter_name, "joint_name%02d", (int)channel);
-            stepper_data_to_pub_[channel].joint_name =
-                this->declare_parameter(parameter_name, parameter_name);
-
-            sprintf(parameter_name, "rescale_factor%02d", (int)channel);
-            double rescale_factor =
-                this->declare_parameter(parameter_name, 1.0);
-            steppers_->setRescaleFactor(channel, rescale_factor);
-
-            sprintf(parameter_name, "position_control_mode%02d", (int)channel);
-            bool position_control_mode =
-                this->declare_parameter(parameter_name, true);
-            steppers_->setStepControlMode(channel, position_control_mode);
-
-            // setting position control mode sets velocity limit to 0 but
-            // misreports it so fix by setting to 0.0 explicitly
-            steppers_->setVelocityLimit(channel, 0.0);
-
-            stepper_data_to_pub_[channel].stepper_interface =
-                std::make_unique<StepperInterface>(steppers_.get(), channel,
-                                                   this);
-
-            // initialize current limits to zero to prevent motor damage
-            steppers_->setCurrentLimit(channel, 0.0);
-            steppers_->setHoldingCurrentLimit(channel, 0.0);
-
-            steppers_->enableFailsafe(channel, watchdog_interval_ms);
-
-            stepper_data_to_pub_[channel].last_position_val =
-                steppers_->getPosition(channel);
-            stepper_data_to_pub_[channel].last_velocity_val =
-                steppers_->getVelocity(channel);
-        }
-    } catch (const Phidget22Error& err)
-    {
-        RCLCPP_ERROR(get_logger(), "Steppers: %s", err.what());
-        throw;
-    }
-
-    stepper_pub_ = this->create_publisher<sensor_msgs::msg::JointState>(
-        "joint_states", 100);
-
-    if (publish_rate_ > 0.0)
-    {
-        double pub_msec = 1000.0 / publish_rate_;
-        publish_timer_ = this->create_wall_timer(
-            std::chrono::milliseconds(static_cast<int64_t>(pub_msec)),
-            std::bind(&SteppersRosI::publishTimerCallback, this));
-    } else
-    {
-        // If we are *not* publishing periodically, then we are event driven and
-        // will only publish when something changes (where "changes" is defined
-        // by the libphidget22 library).  In that case, make sure to publish
-        // once at the beginning to make sure there is *some* data.
-        publishLatestJointStates();
-    }
+  if (publish_rate_ > 0.0)
+  {
+    double pub_msec = 1000.0 / publish_rate_;
+    publish_timer_ = this->create_wall_timer(std::chrono::milliseconds(static_cast<int64_t>(pub_msec)),
+                                             std::bind(&SteppersRosI::publishTimerCallback, this));
+  }
+  else
+  {
+    // If we are *not* publishing periodically, then we are event driven and
+    // will only publish when something changes (where "changes" is defined
+    // by the libphidget22 library).  In that case, make sure to publish
+    // once at the beginning to make sure there is *some* data.
+    publishLatestJointStates();
+  }
 }
 
 void SteppersRosI::publishTimerCallback()
 {
-    std::lock_guard<std::mutex> lock(stepper_mutex_);
-    publishLatestJointStates();
+  std::lock_guard<std::mutex> lock(stepper_mutex_);
+  publishLatestJointStates();
 }
 
 void SteppersRosI::publishLatestJointStates()
 {
-    sensor_msgs::msg::JointState msg;
+  sensor_msgs::msg::JointState msg;
 
-    msg.header.stamp = this->now();
-    msg.header.frame_id = frame_id_;
+  msg.header.stamp = this->now();
+  msg.header.frame_id = frame_id_;
 
-    for (size_t channel = 0; channel < stepper_data_to_pub_.size(); channel++)
-    {
-        msg.name.push_back(stepper_data_to_pub_[channel].joint_name);
-        msg.position.push_back(stepper_data_to_pub_[channel].last_position_val);
-        msg.velocity.push_back(stepper_data_to_pub_[channel].last_velocity_val);
-    }
-    stepper_pub_->publish(msg);
+  for (size_t channel = 0; channel < stepper_data_to_pub_.size(); channel++)
+  {
+    msg.name.push_back(stepper_data_to_pub_[channel].joint_name);
+    msg.position.push_back(stepper_data_to_pub_[channel].last_position_val);
+    msg.velocity.push_back(stepper_data_to_pub_[channel].last_velocity_val);
+  }
+  stepper_pub_->publish(msg);
 }
 
 void SteppersRosI::watchdogTimerCallback()
 {
-    std::lock_guard<std::mutex> lock(stepper_mutex_);
-    kickWatchdogTimers();
+  std::lock_guard<std::mutex> lock(stepper_mutex_);
+  kickWatchdogTimers();
 }
 
 void SteppersRosI::kickWatchdogTimers()
 {
-    for (size_t channel = 0; channel < steppers_->getStepperCount(); channel++)
-    {
-        steppers_->resetFailsafe(channel);
-    }
+  for (size_t channel = 0; channel < steppers_->getStepperCount(); channel++)
+  {
+    steppers_->resetFailsafe(channel);
+  }
 }
 
 void SteppersRosI::positionChangeCallback(int channel, double position)
 {
-    if (static_cast<int>(stepper_data_to_pub_.size()) > channel)
-    {
-        std::lock_guard<std::mutex> lock(stepper_mutex_);
-        stepper_data_to_pub_[channel].last_position_val = position;
+  if (static_cast<int>(stepper_data_to_pub_.size()) > channel)
+  {
+    std::lock_guard<std::mutex> lock(stepper_mutex_);
+    stepper_data_to_pub_[channel].last_position_val = position;
 
-        if (publish_rate_ <= 0.0)
-        {
-            publishLatestJointStates();
-        }
+    if (publish_rate_ <= 0.0)
+    {
+      publishLatestJointStates();
     }
+  }
 }
 
 void SteppersRosI::velocityChangeCallback(int channel, double velocity)
 {
-    if (static_cast<int>(stepper_data_to_pub_.size()) > channel)
-    {
-        std::lock_guard<std::mutex> lock(stepper_mutex_);
-        stepper_data_to_pub_[channel].last_velocity_val = velocity;
+  if (static_cast<int>(stepper_data_to_pub_.size()) > channel)
+  {
+    std::lock_guard<std::mutex> lock(stepper_mutex_);
+    stepper_data_to_pub_[channel].last_velocity_val = velocity;
 
-        if (publish_rate_ <= 0.0)
-        {
-            publishLatestJointStates();
-        }
+    if (publish_rate_ <= 0.0)
+    {
+      publishLatestJointStates();
     }
+  }
 }
 
 void SteppersRosI::stoppedCallback(int channel)
 {
-    (void)channel;  // remove unused parameter warning
-    RCLCPP_INFO(get_logger(), "Stopped!");
+  (void)channel;  // remove unused parameter warning
+  RCLCPP_INFO(get_logger(), "Stopped!");
 }
 
 }  // namespace phidgets

@@ -36,44 +36,43 @@
 
 #include "phidgets_api/phidget22.hpp"
 
-namespace phidgets {
-
-enum class ThermocoupleType {
-    J_TYPE = 1,
-    K_TYPE = 2,
-    E_TYPE = 3,
-    T_TYPE = 4,
+namespace phidgets
+{
+enum class ThermocoupleType
+{
+  J_TYPE = 1,
+  K_TYPE = 2,
+  E_TYPE = 3,
+  T_TYPE = 4,
 };
 
 class Temperature final
 {
-  public:
-    PHIDGET22_NO_COPY_NO_MOVE_NO_ASSIGN(Temperature)
+public:
+  PHIDGET22_NO_COPY_NO_MOVE_NO_ASSIGN(Temperature)
 
-    explicit Temperature(int32_t serial_number, int hub_port,
-                         bool is_hub_port_device,
-                         std::function<void(double)> temperature_handler);
+  explicit Temperature(int32_t serial_number, int hub_port, bool is_hub_port_device,
+                       std::function<void(double)> temperature_handler);
 
-    ~Temperature();
+  ~Temperature();
 
-    int32_t getSerialNumber() const noexcept;
+  int32_t getSerialNumber() const noexcept;
 
-    void setThermocoupleType(ThermocoupleType type);
+  void setThermocoupleType(ThermocoupleType type);
 
-    double getTemperature() const;
+  double getTemperature() const;
 
-    void setDataInterval(uint32_t interval_ms) const;
+  void setDataInterval(uint32_t interval_ms) const;
 
-    void temperatureChangeHandler(double temperature) const;
+  void temperatureChangeHandler(double temperature) const;
 
-  private:
-    int32_t serial_number_;
-    std::function<void(double)> temperature_handler_;
-    PhidgetTemperatureSensorHandle temperature_handle_;
+private:
+  int32_t serial_number_;
+  std::function<void(double)> temperature_handler_;
+  PhidgetTemperatureSensorHandle temperature_handle_;
 
-    static void TemperatureChangeHandler(
-        PhidgetTemperatureSensorHandle temperature_handle, void *ctx,
-        double temperature);
+  static void TemperatureChangeHandler(PhidgetTemperatureSensorHandle temperature_handle, void* ctx,
+                                       double temperature);
 };
 
 }  // namespace phidgets

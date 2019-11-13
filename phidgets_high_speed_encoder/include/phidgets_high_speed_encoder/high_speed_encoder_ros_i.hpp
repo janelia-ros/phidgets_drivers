@@ -41,45 +41,44 @@
 #include "phidgets_api/encoders.hpp"
 #include "phidgets_msgs/msg/encoder_decimated_speed.hpp"
 
-namespace phidgets {
-
-struct EncoderDataToPub {
-    double instantaneous_speed = .0;
-    std::vector<double> speeds_buffer;
-    bool speed_buffer_updated = false;
-    int loops_without_update_speed_buffer = 0;
-    std::string joint_name;
-    double joint_tick2rad;
-    rclcpp::Publisher<phidgets_msgs::msg::EncoderDecimatedSpeed>::SharedPtr
-        encoder_decimspeed_pub;
+namespace phidgets
+{
+struct EncoderDataToPub
+{
+  double instantaneous_speed = .0;
+  std::vector<double> speeds_buffer;
+  bool speed_buffer_updated = false;
+  int loops_without_update_speed_buffer = 0;
+  std::string joint_name;
+  double joint_tick2rad;
+  rclcpp::Publisher<phidgets_msgs::msg::EncoderDecimatedSpeed>::SharedPtr encoder_decimspeed_pub;
 };
 
 class HighSpeedEncoderRosI final : public rclcpp::Node
 {
-  public:
-    explicit HighSpeedEncoderRosI(const rclcpp::NodeOptions& options);
+public:
+  explicit HighSpeedEncoderRosI(const rclcpp::NodeOptions& options);
 
-  private:
-    std::unique_ptr<Encoders> encs_;
-    std::mutex encoder_mutex_;
-    std::vector<EncoderDataToPub> enc_data_to_pub_;
-    std::string frame_id_;
-    // (Default=10) Number of samples for the sliding window average filter of
-    // speeds.
-    int speed_filter_samples_len_;
-    // (Default=1) Number of "ITERATE" loops without any new encoder tick before
-    // resetting the filtered average velocities.
-    int speed_filter_idle_iter_loops_before_reset_;
+private:
+  std::unique_ptr<Encoders> encs_;
+  std::mutex encoder_mutex_;
+  std::vector<EncoderDataToPub> enc_data_to_pub_;
+  std::string frame_id_;
+  // (Default=10) Number of samples for the sliding window average filter of
+  // speeds.
+  int speed_filter_samples_len_;
+  // (Default=1) Number of "ITERATE" loops without any new encoder tick before
+  // resetting the filtered average velocities.
+  int speed_filter_idle_iter_loops_before_reset_;
 
-    rclcpp::Publisher<sensor_msgs::msg::JointState>::SharedPtr encoder_pub_;
-    void timerCallback();
-    rclcpp::TimerBase::SharedPtr timer_;
-    double publish_rate_;
+  rclcpp::Publisher<sensor_msgs::msg::JointState>::SharedPtr encoder_pub_;
+  void timerCallback();
+  rclcpp::TimerBase::SharedPtr timer_;
+  double publish_rate_;
 
-    void publishLatest(int channel);
+  void publishLatest(int channel);
 
-    void positionChangeHandler(int channel, int position_change, double time,
-                               int index_triggered);
+  void positionChangeHandler(int channel, int position_change, double time, int index_triggered);
 };
 }  // namespace phidgets
 

@@ -38,27 +38,27 @@
 
 #include "phidgets_api/temperature.hpp"
 
-namespace phidgets {
-
+namespace phidgets
+{
 class TemperatureRosI final : public rclcpp::Node
 {
-  public:
-    explicit TemperatureRosI(const rclcpp::NodeOptions& options);
+public:
+  explicit TemperatureRosI(const rclcpp::NodeOptions& options);
 
-  private:
-    std::unique_ptr<Temperature> temperature_;
-    std::mutex temperature_mutex_;
-    double last_temperature_reading_;
-    bool got_first_data_;
+private:
+  std::unique_ptr<Temperature> temperature_;
+  std::mutex temperature_mutex_;
+  double last_temperature_reading_;
+  bool got_first_data_;
 
-    rclcpp::Publisher<std_msgs::msg::Float64>::SharedPtr temperature_pub_;
-    void timerCallback();
-    rclcpp::TimerBase::SharedPtr timer_;
-    double publish_rate_;
+  rclcpp::Publisher<std_msgs::msg::Float64>::SharedPtr temperature_pub_;
+  void timerCallback();
+  rclcpp::TimerBase::SharedPtr timer_;
+  double publish_rate_;
 
-    void publishLatest();
+  void publishLatest();
 
-    void temperatureChangeCallback(double temperature);
+  void temperatureChangeCallback(double temperature);
 };
 
 }  // namespace phidgets

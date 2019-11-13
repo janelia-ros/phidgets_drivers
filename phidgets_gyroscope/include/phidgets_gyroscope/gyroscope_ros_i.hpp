@@ -41,50 +41,48 @@
 
 #include "phidgets_api/gyroscope.hpp"
 
-namespace phidgets {
-
+namespace phidgets
+{
 class GyroscopeRosI final : public rclcpp::Node
 {
-  public:
-    explicit GyroscopeRosI(const rclcpp::NodeOptions& options);
+public:
+  explicit GyroscopeRosI(const rclcpp::NodeOptions& options);
 
-  private:
-    std::unique_ptr<Gyroscope> gyroscope_;
-    std::string frame_id_;
-    double angular_velocity_variance_;
-    std::mutex gyro_mutex_;
-    double last_gyro_x_;
-    double last_gyro_y_;
-    double last_gyro_z_;
+private:
+  std::unique_ptr<Gyroscope> gyroscope_;
+  std::string frame_id_;
+  double angular_velocity_variance_;
+  std::mutex gyro_mutex_;
+  double last_gyro_x_;
+  double last_gyro_y_;
+  double last_gyro_z_;
 
-    rclcpp::Publisher<std_msgs::msg::Bool>::SharedPtr cal_publisher_;
-    rclcpp::Service<std_srvs::srv::Empty>::SharedPtr cal_srv_;
-    rclcpp::Publisher<sensor_msgs::msg::Imu>::SharedPtr gyroscope_pub_;
-    void timerCallback();
-    rclcpp::TimerBase::SharedPtr timer_;
-    double publish_rate_;
+  rclcpp::Publisher<std_msgs::msg::Bool>::SharedPtr cal_publisher_;
+  rclcpp::Service<std_srvs::srv::Empty>::SharedPtr cal_srv_;
+  rclcpp::Publisher<sensor_msgs::msg::Imu>::SharedPtr gyroscope_pub_;
+  void timerCallback();
+  rclcpp::TimerBase::SharedPtr timer_;
+  double publish_rate_;
 
-    rclcpp::Time ros_time_zero_;
-    bool synchronize_timestamps_{true};
-    uint64_t data_time_zero_ns_{0};
-    uint64_t last_data_timestamp_ns_{0};
-    uint64_t last_ros_stamp_ns_{0};
-    int64_t time_resync_interval_ns_{0};
-    int64_t data_interval_ns_{0};
-    bool can_publish_{false};
-    rclcpp::Time last_cb_time_;
-    int64_t cb_delta_epsilon_ns_{0};
+  rclcpp::Time ros_time_zero_;
+  bool synchronize_timestamps_{ true };
+  uint64_t data_time_zero_ns_{ 0 };
+  uint64_t last_data_timestamp_ns_{ 0 };
+  uint64_t last_ros_stamp_ns_{ 0 };
+  int64_t time_resync_interval_ns_{ 0 };
+  int64_t data_interval_ns_{ 0 };
+  bool can_publish_{ false };
+  rclcpp::Time last_cb_time_;
+  int64_t cb_delta_epsilon_ns_{ 0 };
 
-    void publishLatest();
+  void publishLatest();
 
-    void calibrate();
+  void calibrate();
 
-    void calibrateService(
-        const std::shared_ptr<std_srvs::srv::Empty::Request> req,
-        std::shared_ptr<std_srvs::srv::Empty::Response> res);
+  void calibrateService(const std::shared_ptr<std_srvs::srv::Empty::Request> req,
+                        std::shared_ptr<std_srvs::srv::Empty::Response> res);
 
-    void gyroscopeChangeCallback(const double angular_rate[3],
-                                 const double timestamp);
+  void gyroscopeChangeCallback(const double angular_rate[3], const double timestamp);
 };
 
 }  // namespace phidgets

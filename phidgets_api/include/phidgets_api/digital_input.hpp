@@ -36,33 +36,31 @@
 
 #include "phidgets_api/phidget22.hpp"
 
-namespace phidgets {
-
+namespace phidgets
+{
 class DigitalInput
 {
-  public:
-    PHIDGET22_NO_COPY_NO_MOVE_NO_ASSIGN(DigitalInput)
+public:
+  PHIDGET22_NO_COPY_NO_MOVE_NO_ASSIGN(DigitalInput)
 
-    explicit DigitalInput(int32_t serial_number, int hub_port,
-                          bool is_hub_port_device, int channel,
-                          std::function<void(int, int)> input_handler);
+  explicit DigitalInput(int32_t serial_number, int hub_port, bool is_hub_port_device, int channel,
+                        std::function<void(int, int)> input_handler);
 
-    ~DigitalInput();
+  ~DigitalInput();
 
-    int32_t getSerialNumber() const noexcept;
+  int32_t getSerialNumber() const noexcept;
 
-    bool getInputValue() const;
+  bool getInputValue() const;
 
-    void stateChangeHandler(int state) const;
+  void stateChangeHandler(int state) const;
 
-  private:
-    int32_t serial_number_;
-    int channel_;
-    std::function<void(int, int)> input_handler_;
-    PhidgetDigitalInputHandle di_handle_;
+private:
+  int32_t serial_number_;
+  int channel_;
+  std::function<void(int, int)> input_handler_;
+  PhidgetDigitalInputHandle di_handle_;
 
-    static void StateChangeHandler(PhidgetDigitalInputHandle input_handle,
-                                   void *ctx, int state);
+  static void StateChangeHandler(PhidgetDigitalInputHandle input_handle, void* ctx, int state);
 };
 
 }  // namespace phidgets

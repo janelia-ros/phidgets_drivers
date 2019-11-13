@@ -36,76 +36,72 @@
 
 #include "phidgets_api/phidget22.hpp"
 
-namespace phidgets {
-
+namespace phidgets
+{
 class Stepper final
 {
-  public:
-    PHIDGET22_NO_COPY_NO_MOVE_NO_ASSIGN(Stepper)
+public:
+  PHIDGET22_NO_COPY_NO_MOVE_NO_ASSIGN(Stepper)
 
-    explicit Stepper(int32_t serial_number, int hub_port,
-                     bool is_hub_port_device, int channel,
-                     std::function<void(int, double)> position_change_handler,
-                     std::function<void(int, double)> velocity_change_handler,
-                     std::function<void(int)> stopped_handler);
+  explicit Stepper(int32_t serial_number, int hub_port, bool is_hub_port_device, int channel,
+                   std::function<void(int, double)> position_change_handler,
+                   std::function<void(int, double)> velocity_change_handler, std::function<void(int)> stopped_handler);
 
-    ~Stepper();
+  ~Stepper();
 
-    int32_t getSerialNumber() const noexcept;
+  int32_t getSerialNumber() const noexcept;
 
-    double getAcceleration() const;
-    void setAcceleration(double acceleration) const;
-    double getMinAcceleration() const;
-    double getMaxAcceleration() const;
-    bool stepControlMode() const;
-    void setStepControlMode(bool step_control_mode) const;
-    double getCurrentLimit() const;
-    void setCurrentLimit(double current_limit) const;
-    double getMinCurrentLimit() const;
-    double getMaxCurrentLimit() const;
-    uint32_t getDataInterval() const;
-    void setDataInterval(uint32_t data_interval_ms) const;
-    uint32_t getMinDataInterval() const;
-    uint32_t getMaxDataInterval() const;
-    bool getEngaged() const;
-    void setEngaged(bool engaged) const;
-    void enableFailsafe(uint32_t failsafe_time_ms) const;
-    uint32_t getMinFailsafeTime() const;
-    uint32_t getMaxFailsafeTime() const;
-    double getHoldingCurrentLimit() const;
-    void setHoldingCurrentLimit(double holding_current_limit) const;
-    double getPosition() const;
-    double getMinPosition() const;
-    double getMaxPosition() const;
-    void addPositionOffset(double position_offset) const;
-    double getRescaleFactor() const;
-    void setRescaleFactor(double rescale_factor) const;
-    void resetFailsafe() const;
-    double getTargetPosition() const;
-    void setTargetPosition(double target_position) const;
-    double getVelocity() const;
-    double getVelocityLimit() const;
-    void setVelocityLimit(double velocity_limit) const;
-    double getMinVelocityLimit() const;
-    double getMaxVelocityLimit() const;
+  double getAcceleration() const;
+  void setAcceleration(double acceleration) const;
+  double getMinAcceleration() const;
+  double getMaxAcceleration() const;
+  bool stepControlMode() const;
+  void setStepControlMode(bool step_control_mode) const;
+  double getCurrentLimit() const;
+  void setCurrentLimit(double current_limit) const;
+  double getMinCurrentLimit() const;
+  double getMaxCurrentLimit() const;
+  uint32_t getDataInterval() const;
+  void setDataInterval(uint32_t data_interval_ms) const;
+  uint32_t getMinDataInterval() const;
+  uint32_t getMaxDataInterval() const;
+  bool getEngaged() const;
+  void setEngaged(bool engaged) const;
+  void enableFailsafe(uint32_t failsafe_time_ms) const;
+  uint32_t getMinFailsafeTime() const;
+  uint32_t getMaxFailsafeTime() const;
+  double getHoldingCurrentLimit() const;
+  void setHoldingCurrentLimit(double holding_current_limit) const;
+  double getPosition() const;
+  double getMinPosition() const;
+  double getMaxPosition() const;
+  void addPositionOffset(double position_offset) const;
+  double getRescaleFactor() const;
+  void setRescaleFactor(double rescale_factor) const;
+  void resetFailsafe() const;
+  double getTargetPosition() const;
+  void setTargetPosition(double target_position) const;
+  double getVelocity() const;
+  double getVelocityLimit() const;
+  void setVelocityLimit(double velocity_limit) const;
+  double getMinVelocityLimit() const;
+  double getMaxVelocityLimit() const;
 
-    void positionChangeHandler(double position) const;
-    void velocityChangeHandler(double velocity) const;
-    void stoppedHandler() const;
+  void positionChangeHandler(double position) const;
+  void velocityChangeHandler(double velocity) const;
+  void stoppedHandler() const;
 
-  private:
-    int32_t serial_number_;
-    int channel_;
-    std::function<void(int, double)> position_change_handler_;
-    std::function<void(int, double)> velocity_change_handler_;
-    std::function<void(int)> stopped_handler_;
-    PhidgetStepperHandle stepper_handle_;
+private:
+  int32_t serial_number_;
+  int channel_;
+  std::function<void(int, double)> position_change_handler_;
+  std::function<void(int, double)> velocity_change_handler_;
+  std::function<void(int)> stopped_handler_;
+  PhidgetStepperHandle stepper_handle_;
 
-    static void PositionChangeHandler(PhidgetStepperHandle stepper_handle,
-                                      void *ctx, double position);
-    static void VelocityChangeHandler(PhidgetStepperHandle stepper_handle,
-                                      void *ctx, double velocity);
-    static void StoppedHandler(PhidgetStepperHandle stepper_handle, void *ctx);
+  static void PositionChangeHandler(PhidgetStepperHandle stepper_handle, void* ctx, double position);
+  static void VelocityChangeHandler(PhidgetStepperHandle stepper_handle, void* ctx, double velocity);
+  static void StoppedHandler(PhidgetStepperHandle stepper_handle, void* ctx);
 };
 
 }  // namespace phidgets

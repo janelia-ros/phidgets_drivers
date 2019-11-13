@@ -35,47 +35,41 @@
 #include "phidgets_api/encoders.hpp"
 #include "phidgets_api/phidget22.hpp"
 
-namespace phidgets {
-
-Encoders::Encoders(
-    int32_t serial_number, int hub_port, bool is_hub_port_device,
-    std::function<void(int, int, double, int)> position_change_handler)
+namespace phidgets
 {
-    PhidgetReturnCode ret;
+Encoders::Encoders(int32_t serial_number, int hub_port, bool is_hub_port_device,
+                   std::function<void(int, int, double, int)> position_change_handler)
+{
+  PhidgetReturnCode ret;
 
-    PhidgetEncoderHandle enc_handle;
+  PhidgetEncoderHandle enc_handle;
 
-    ret = PhidgetEncoder_create(&enc_handle);
-    if (ret != EPHIDGET_OK)
-    {
-        throw Phidget22Error(
-            "Failed to create Encoder handle for determining channel "
-            "count",
-            ret);
-    }
+  ret = PhidgetEncoder_create(&enc_handle);
+  if (ret != EPHIDGET_OK)
+  {
+    throw Phidget22Error("Failed to create Encoder handle for determining channel "
+                         "count",
+                         ret);
+  }
 
-    PhidgetHandle handle = reinterpret_cast<PhidgetHandle>(enc_handle);
+  PhidgetHandle handle = reinterpret_cast<PhidgetHandle>(enc_handle);
 
-    helpers::openWaitForAttachment(handle, serial_number, hub_port,
-                                   is_hub_port_device, 0);
+  helpers::openWaitForAttachment(handle, serial_number, hub_port, is_hub_port_device, 0);
 
-    ret = Phidget_getDeviceChannelCount(handle, PHIDCHCLASS_ENCODER,
-                                        &encoder_count_);
+  ret = Phidget_getDeviceChannelCount(handle, PHIDCHCLASS_ENCODER, &encoder_count_);
 
-    helpers::closeAndDelete(&handle);
+  helpers::closeAndDelete(&handle);
 
-    if (ret != EPHIDGET_OK)
-    {
-        throw Phidget22Error("Failed to get Encoder device channel count", ret);
-    }
+  if (ret != EPHIDGET_OK)
+  {
+    throw Phidget22Error("Failed to get Encoder device channel count", ret);
+  }
 
-    encs_.resize(encoder_count_);
-    for (uint32_t i = 0; i < encoder_count_; ++i)
-    {
-        encs_[i] = std::make_unique<Encoder>(serial_number, hub_port,
-                                             is_hub_port_device, i,
-                                             position_change_handler);
-    }
+  encs_.resize(encoder_count_);
+  for (uint32_t i = 0; i < encoder_count_; ++i)
+  {
+    encs_[i] = std::make_unique<Encoder>(serial_number, hub_port, is_hub_port_device, i, position_change_handler);
+  }
 }
 
 Encoders::~Encoders()
@@ -84,37 +78,37 @@ Encoders::~Encoders()
 
 int32_t Encoders::getSerialNumber() const noexcept
 {
-    return encs_.at(0)->getSerialNumber();
+  return encs_.at(0)->getSerialNumber();
 }
 
 uint32_t Encoders::getEncoderCount() const
 {
-    return encoder_count_;
+  return encoder_count_;
 }
 
 int64_t Encoders::getPosition(int index) const
 {
-    return encs_.at(index)->getPosition();
+  return encs_.at(index)->getPosition();
 }
 
 void Encoders::setPosition(int index, int64_t position) const
 {
-    return encs_.at(index)->setPosition(position);
+  return encs_.at(index)->setPosition(position);
 }
 
 int64_t Encoders::getIndexPosition(int index) const
 {
-    return encs_.at(index)->getIndexPosition();
+  return encs_.at(index)->getIndexPosition();
 }
 
 bool Encoders::getEnabled(int index) const
 {
-    return encs_.at(index)->getEnabled();
+  return encs_.at(index)->getEnabled();
 }
 
 void Encoders::setEnabled(int index, bool enabled) const
 {
-    return encs_.at(index)->setEnabled(enabled);
+  return encs_.at(index)->setEnabled(enabled);
 }
 
 }  // namespace phidgets

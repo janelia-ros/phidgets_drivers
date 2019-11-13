@@ -36,29 +36,27 @@
 
 #include "phidgets_api/phidget22.hpp"
 
-namespace phidgets {
-
+namespace phidgets
+{
 class IR final
 {
-  public:
-    PHIDGET22_NO_COPY_NO_MOVE_NO_ASSIGN(IR)
+public:
+  PHIDGET22_NO_COPY_NO_MOVE_NO_ASSIGN(IR)
 
-    explicit IR(int32_t serial_number,
-                std::function<void(const char *, uint32_t, int)> code_handler);
+  explicit IR(int32_t serial_number, std::function<void(const char*, uint32_t, int)> code_handler);
 
-    ~IR();
+  ~IR();
 
-    int32_t getSerialNumber() const noexcept;
+  int32_t getSerialNumber() const noexcept;
 
-    void codeHandler(const char *code, uint32_t bit_count, int is_repeat) const;
+  void codeHandler(const char* code, uint32_t bit_count, int is_repeat) const;
 
-  private:
-    int32_t serial_number_;
-    std::function<void(const char *, uint32_t, int)> code_handler_;
-    PhidgetIRHandle ir_handle_;
+private:
+  int32_t serial_number_;
+  std::function<void(const char*, uint32_t, int)> code_handler_;
+  PhidgetIRHandle ir_handle_;
 
-    static void CodeHandler(PhidgetIRHandle ir, void *ctx, const char *code,
-                            uint32_t bit_count, int is_repeat);
+  static void CodeHandler(PhidgetIRHandle ir, void* ctx, const char* code, uint32_t bit_count, int is_repeat);
 };
 
 }  // namespace phidgets

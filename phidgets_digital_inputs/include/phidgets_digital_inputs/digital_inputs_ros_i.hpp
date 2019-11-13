@@ -39,30 +39,31 @@
 
 #include "phidgets_api/digital_inputs.hpp"
 
-namespace phidgets {
-
-struct ValToPub {
-    rclcpp::Publisher<std_msgs::msg::Bool>::SharedPtr pub;
-    bool last_val;
+namespace phidgets
+{
+struct ValToPub
+{
+  rclcpp::Publisher<std_msgs::msg::Bool>::SharedPtr pub;
+  bool last_val;
 };
 
 class DigitalInputsRosI final : public rclcpp::Node
 {
-  public:
-    explicit DigitalInputsRosI(const rclcpp::NodeOptions& options);
+public:
+  explicit DigitalInputsRosI(const rclcpp::NodeOptions& options);
 
-  private:
-    std::unique_ptr<DigitalInputs> dis_;
-    std::mutex di_mutex_;
-    std::vector<ValToPub> val_to_pubs_;
+private:
+  std::unique_ptr<DigitalInputs> dis_;
+  std::mutex di_mutex_;
+  std::vector<ValToPub> val_to_pubs_;
 
-    void timerCallback();
-    rclcpp::TimerBase::SharedPtr timer_;
-    double publish_rate_;
+  void timerCallback();
+  rclcpp::TimerBase::SharedPtr timer_;
+  double publish_rate_;
 
-    void publishLatest(int index);
+  void publishLatest(int index);
 
-    void stateChangeCallback(int index, int input_value);
+  void stateChangeCallback(int index, int input_value);
 };
 
 }  // namespace phidgets

@@ -35,59 +35,50 @@
 #include "phidgets_api/digital_output.hpp"
 #include "phidgets_api/phidget22.hpp"
 
-namespace phidgets {
-
-DigitalOutput::DigitalOutput(int32_t serial_number, int hub_port,
-                             bool is_hub_port_device, int channel)
-    : serial_number_(serial_number)
+namespace phidgets
 {
-    PhidgetReturnCode ret;
+DigitalOutput::DigitalOutput(int32_t serial_number, int hub_port, bool is_hub_port_device, int channel)
+  : serial_number_(serial_number)
+{
+  PhidgetReturnCode ret;
 
-    ret = PhidgetDigitalOutput_create(&do_handle_);
+  ret = PhidgetDigitalOutput_create(&do_handle_);
+  if (ret != EPHIDGET_OK)
+  {
+    throw Phidget22Error("Failed to create DigitalOutput handle for channel " + std::to_string(channel), ret);
+  }
+
+  helpers::openWaitForAttachment(reinterpret_cast<PhidgetHandle>(do_handle_), serial_number, hub_port,
+                                 is_hub_port_device, channel);
+
+  if (serial_number_ == -1)
+  {
+    ret = Phidget_getDeviceSerialNumber(reinterpret_cast<PhidgetHandle>(do_handle_), &serial_number_);
     if (ret != EPHIDGET_OK)
     {
-        throw Phidget22Error(
-            "Failed to create DigitalOutput handle for channel " +
-                std::to_string(channel),
-            ret);
+      throw Phidget22Error("Failed to get serial number for digital output channel " + std::to_string(channel), ret);
     }
-
-    helpers::openWaitForAttachment(reinterpret_cast<PhidgetHandle>(do_handle_),
-                                   serial_number, hub_port, is_hub_port_device,
-                                   channel);
-
-    if (serial_number_ == -1)
-    {
-        ret = Phidget_getDeviceSerialNumber(
-            reinterpret_cast<PhidgetHandle>(do_handle_), &serial_number_);
-        if (ret != EPHIDGET_OK)
-        {
-            throw Phidget22Error(
-                "Failed to get serial number for digital output channel " +
-                    std::to_string(channel),
-                ret);
-        }
-    }
+  }
 }
 
 DigitalOutput::~DigitalOutput()
 {
-    PhidgetHandle handle = reinterpret_cast<PhidgetHandle>(do_handle_);
-    helpers::closeAndDelete(&handle);
+  PhidgetHandle handle = reinterpret_cast<PhidgetHandle>(do_handle_);
+  helpers::closeAndDelete(&handle);
 }
 
 int32_t DigitalOutput::getSerialNumber() const noexcept
 {
-    return serial_number_;
+  return serial_number_;
 }
 
 void DigitalOutput::setOutputState(bool state) const
 {
-    PhidgetReturnCode ret = PhidgetDigitalOutput_setState(do_handle_, state);
-    if (ret != EPHIDGET_OK)
-    {
-        throw Phidget22Error("Failed to set start for DigitalOutput", ret);
-    }
+  PhidgetReturnCode ret = PhidgetDigitalOutput_setState(do_handle_, state);
+  if (ret != EPHIDGET_OK)
+  {
+    throw Phidget22Error("Failed to set start for DigitalOutput", ret);
+  }
 }
 
 }  // namespace phidgets

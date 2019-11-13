@@ -36,46 +36,40 @@
 #include "phidgets_api/digital_outputs.hpp"
 #include "phidgets_api/phidget22.hpp"
 
-namespace phidgets {
-
-DigitalOutputs::DigitalOutputs(int32_t serial_number, int hub_port,
-                               bool is_hub_port_device)
+namespace phidgets
 {
-    PhidgetReturnCode ret;
+DigitalOutputs::DigitalOutputs(int32_t serial_number, int hub_port, bool is_hub_port_device)
+{
+  PhidgetReturnCode ret;
 
-    PhidgetDigitalOutputHandle do_handle;
+  PhidgetDigitalOutputHandle do_handle;
 
-    ret = PhidgetDigitalOutput_create(&do_handle);
-    if (ret != EPHIDGET_OK)
-    {
-        throw Phidget22Error(
-            "Failed to create DigitalOutput handle for determining channel "
-            "count",
-            ret);
-    }
+  ret = PhidgetDigitalOutput_create(&do_handle);
+  if (ret != EPHIDGET_OK)
+  {
+    throw Phidget22Error("Failed to create DigitalOutput handle for determining channel "
+                         "count",
+                         ret);
+  }
 
-    PhidgetHandle handle = reinterpret_cast<PhidgetHandle>(do_handle);
+  PhidgetHandle handle = reinterpret_cast<PhidgetHandle>(do_handle);
 
-    helpers::openWaitForAttachment(handle, serial_number, hub_port,
-                                   is_hub_port_device, 0);
+  helpers::openWaitForAttachment(handle, serial_number, hub_port, is_hub_port_device, 0);
 
-    ret = Phidget_getDeviceChannelCount(handle, PHIDCHCLASS_DIGITALOUTPUT,
-                                        &output_count_);
+  ret = Phidget_getDeviceChannelCount(handle, PHIDCHCLASS_DIGITALOUTPUT, &output_count_);
 
-    helpers::closeAndDelete(&handle);
+  helpers::closeAndDelete(&handle);
 
-    if (ret != EPHIDGET_OK)
-    {
-        throw Phidget22Error("Failed to get DigitalOutput device channel count",
-                             ret);
-    }
+  if (ret != EPHIDGET_OK)
+  {
+    throw Phidget22Error("Failed to get DigitalOutput device channel count", ret);
+  }
 
-    dos_.resize(output_count_);
-    for (uint32_t i = 0; i < output_count_; ++i)
-    {
-        dos_[i] = std::make_unique<DigitalOutput>(serial_number, hub_port,
-                                                  is_hub_port_device, i);
-    }
+  dos_.resize(output_count_);
+  for (uint32_t i = 0; i < output_count_; ++i)
+  {
+    dos_[i] = std::make_unique<DigitalOutput>(serial_number, hub_port, is_hub_port_device, i);
+  }
 }
 
 DigitalOutputs::~DigitalOutputs()
@@ -84,17 +78,17 @@ DigitalOutputs::~DigitalOutputs()
 
 int32_t DigitalOutputs::getSerialNumber() const noexcept
 {
-    return dos_.at(0)->getSerialNumber();
+  return dos_.at(0)->getSerialNumber();
 }
 
 uint32_t DigitalOutputs::getOutputCount() const noexcept
 {
-    return output_count_;
+  return output_count_;
 }
 
 void DigitalOutputs::setOutputState(int index, bool state) const
 {
-    dos_.at(index)->setOutputState(state);
+  dos_.at(index)->setOutputState(state);
 }
 
 }  // namespace phidgets

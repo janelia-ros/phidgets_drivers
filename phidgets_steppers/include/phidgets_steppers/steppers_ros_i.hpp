@@ -48,109 +48,93 @@
 
 #include "phidgets_api/steppers.hpp"
 
-namespace phidgets {
-
+namespace phidgets
+{
 class StepperInterface final
 {
-  public:
-    explicit StepperInterface(Steppers* steppers, int channel,
-                              rclcpp::Node* node);
+public:
+  explicit StepperInterface(Steppers* steppers, int channel, rclcpp::Node* node);
 
-  private:
-    enum { INTERFACE_NAME_LENGTH_MAX = 200 };
-    Steppers* steppers_;
-    int channel_;
-    rclcpp::Service<phidgets_msgs::srv::SetEnabled>::SharedPtr
-        set_enabled_service_;
-    rclcpp::Service<phidgets_msgs::srv::SetFloat64>::SharedPtr
-        set_target_position_service_;
-    rclcpp::Service<phidgets_msgs::srv::SetFloat64>::SharedPtr
-        set_velocity_limit_service_;
-    rclcpp::Service<phidgets_msgs::srv::SetFloat64>::SharedPtr
-        set_acceleration_service_;
-    rclcpp::Service<phidgets_msgs::srv::SetCurrentLimit>::SharedPtr
-        set_current_limit_service_;
-    rclcpp::Service<phidgets_msgs::srv::SetCurrentLimit>::SharedPtr
-        set_holding_current_limit_service_;
-    rclcpp::Service<phidgets_msgs::srv::SetPosition>::SharedPtr
-        set_position_service_;
-    rclcpp::Service<phidgets_msgs::srv::GetStepperSettings>::SharedPtr
-        get_settings_service_;
-    rclcpp::Service<phidgets_msgs::srv::GetStepperSettingRanges>::SharedPtr
-        get_setting_ranges_service_;
+private:
+  enum
+  {
+    INTERFACE_NAME_LENGTH_MAX = 200
+  };
+  Steppers* steppers_;
+  int channel_;
+  rclcpp::Service<phidgets_msgs::srv::SetEnabled>::SharedPtr set_enabled_service_;
+  rclcpp::Service<phidgets_msgs::srv::SetFloat64>::SharedPtr set_target_position_service_;
+  rclcpp::Service<phidgets_msgs::srv::SetFloat64>::SharedPtr set_velocity_limit_service_;
+  rclcpp::Service<phidgets_msgs::srv::SetFloat64>::SharedPtr set_acceleration_service_;
+  rclcpp::Service<phidgets_msgs::srv::SetCurrentLimit>::SharedPtr set_current_limit_service_;
+  rclcpp::Service<phidgets_msgs::srv::SetCurrentLimit>::SharedPtr set_holding_current_limit_service_;
+  rclcpp::Service<phidgets_msgs::srv::SetPosition>::SharedPtr set_position_service_;
+  rclcpp::Service<phidgets_msgs::srv::GetStepperSettings>::SharedPtr get_settings_service_;
+  rclcpp::Service<phidgets_msgs::srv::GetStepperSettingRanges>::SharedPtr get_setting_ranges_service_;
 
-    void setEnabledCallback(
-        const std::shared_ptr<phidgets_msgs::srv::SetEnabled::Request> req,
-        std::shared_ptr<phidgets_msgs::srv::SetEnabled::Response> res);
-    void setTargetPositionCallback(
-        const std::shared_ptr<phidgets_msgs::srv::SetFloat64::Request> req,
-        std::shared_ptr<phidgets_msgs::srv::SetFloat64::Response> res);
-    void setVelocityLimitCallback(
-        const std::shared_ptr<phidgets_msgs::srv::SetFloat64::Request> req,
-        std::shared_ptr<phidgets_msgs::srv::SetFloat64::Response> res);
-    void setAccelerationCallback(
-        const std::shared_ptr<phidgets_msgs::srv::SetFloat64::Request> req,
-        std::shared_ptr<phidgets_msgs::srv::SetFloat64::Response> res);
-    void setCurrentLimitCallback(
-        const std::shared_ptr<phidgets_msgs::srv::SetCurrentLimit::Request> req,
-        std::shared_ptr<phidgets_msgs::srv::SetCurrentLimit::Response> res);
-    void setHoldingCurrentLimitCallback(
-        const std::shared_ptr<phidgets_msgs::srv::SetCurrentLimit::Request> req,
-        std::shared_ptr<phidgets_msgs::srv::SetCurrentLimit::Response> res);
-    void setPositionCallback(
-        const std::shared_ptr<phidgets_msgs::srv::SetPosition::Request> req,
-        std::shared_ptr<phidgets_msgs::srv::SetPosition::Response> res);
-    void getSettingsCallback(
-        const std::shared_ptr<phidgets_msgs::srv::GetStepperSettings::Request>
-            req,
-        std::shared_ptr<phidgets_msgs::srv::GetStepperSettings::Response> res);
-    void getSettingRangesCallback(
-        const std::shared_ptr<
-            phidgets_msgs::srv::GetStepperSettingRanges::Request>
-            req,
-        std::shared_ptr<phidgets_msgs::srv::GetStepperSettingRanges::Response>
-            res);
+  void setEnabledCallback(const std::shared_ptr<phidgets_msgs::srv::SetEnabled::Request> req,
+                          std::shared_ptr<phidgets_msgs::srv::SetEnabled::Response> res);
+  void setTargetPositionCallback(const std::shared_ptr<phidgets_msgs::srv::SetFloat64::Request> req,
+                                 std::shared_ptr<phidgets_msgs::srv::SetFloat64::Response> res);
+  void setVelocityLimitCallback(const std::shared_ptr<phidgets_msgs::srv::SetFloat64::Request> req,
+                                std::shared_ptr<phidgets_msgs::srv::SetFloat64::Response> res);
+  void setAccelerationCallback(const std::shared_ptr<phidgets_msgs::srv::SetFloat64::Request> req,
+                               std::shared_ptr<phidgets_msgs::srv::SetFloat64::Response> res);
+  void setCurrentLimitCallback(const std::shared_ptr<phidgets_msgs::srv::SetCurrentLimit::Request> req,
+                               std::shared_ptr<phidgets_msgs::srv::SetCurrentLimit::Response> res);
+  void setHoldingCurrentLimitCallback(const std::shared_ptr<phidgets_msgs::srv::SetCurrentLimit::Request> req,
+                                      std::shared_ptr<phidgets_msgs::srv::SetCurrentLimit::Response> res);
+  void setPositionCallback(const std::shared_ptr<phidgets_msgs::srv::SetPosition::Request> req,
+                           std::shared_ptr<phidgets_msgs::srv::SetPosition::Response> res);
+  void getSettingsCallback(const std::shared_ptr<phidgets_msgs::srv::GetStepperSettings::Request> req,
+                           std::shared_ptr<phidgets_msgs::srv::GetStepperSettings::Response> res);
+  void getSettingRangesCallback(const std::shared_ptr<phidgets_msgs::srv::GetStepperSettingRanges::Request> req,
+                                std::shared_ptr<phidgets_msgs::srv::GetStepperSettingRanges::Response> res);
 };
 
-struct StepperDataToPub {
-    std::unique_ptr<StepperInterface> stepper_interface;
-    std::string joint_name;
-    double last_position_val;
-    double last_velocity_val;
+struct StepperDataToPub
+{
+  std::unique_ptr<StepperInterface> stepper_interface;
+  std::string joint_name;
+  double last_position_val;
+  double last_velocity_val;
 };
 
 class SteppersRosI final : public rclcpp::Node
 {
-  public:
-    explicit SteppersRosI(const rclcpp::NodeOptions& options);
+public:
+  explicit SteppersRosI(const rclcpp::NodeOptions& options);
 
-  private:
-    enum { PARAMETER_NAME_LENGTH_MAX = 200 };
-    std::unique_ptr<Steppers> steppers_;
-    std::mutex stepper_mutex_;
-    std::vector<StepperDataToPub> stepper_data_to_pub_;
-    std::string frame_id_;
+private:
+  enum
+  {
+    PARAMETER_NAME_LENGTH_MAX = 200
+  };
+  std::unique_ptr<Steppers> steppers_;
+  std::mutex stepper_mutex_;
+  std::vector<StepperDataToPub> stepper_data_to_pub_;
+  std::string frame_id_;
 
-    rclcpp::Publisher<sensor_msgs::msg::JointState>::SharedPtr stepper_pub_;
+  rclcpp::Publisher<sensor_msgs::msg::JointState>::SharedPtr stepper_pub_;
 
-    rclcpp::TimerBase::SharedPtr publish_timer_;
-    double publish_rate_;
+  rclcpp::TimerBase::SharedPtr publish_timer_;
+  double publish_rate_;
 
-    rclcpp::TimerBase::SharedPtr watchdog_timer_;
+  rclcpp::TimerBase::SharedPtr watchdog_timer_;
 
-    void publishTimerCallback();
+  void publishTimerCallback();
 
-    void publishLatestJointStates();
+  void publishLatestJointStates();
 
-    void watchdogTimerCallback();
+  void watchdogTimerCallback();
 
-    void kickWatchdogTimers();
+  void kickWatchdogTimers();
 
-    void positionChangeCallback(int channel, double position);
+  void positionChangeCallback(int channel, double position);
 
-    void velocityChangeCallback(int channel, double velocity);
+  void velocityChangeCallback(int channel, double velocity);
 
-    void stoppedCallback(int channel);
+  void stoppedCallback(int channel);
 };
 
 }  // namespace phidgets
