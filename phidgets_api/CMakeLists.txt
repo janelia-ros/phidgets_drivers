@@ -18,22 +18,16 @@ include_directories(include)
 
 add_library(phidgets_api src/accelerometer.cpp
                          src/analog_input.cpp
-                         src/analog_inputs.cpp
                          src/digital_input.cpp
-                         src/digital_inputs.cpp
                          src/digital_output.cpp
-                         src/digital_outputs.cpp
                          src/encoder.cpp
-                         src/encoders.cpp
                          src/gyroscope.cpp
                          src/ir.cpp
                          src/magnetometer.cpp
                          src/motor.cpp
-                         src/motors.cpp
                          src/phidget22.cpp
                          src/spatial.cpp
                          src/stepper.cpp
-                         src/steppers.cpp
                          src/temperature.cpp)
 
 ament_target_dependencies(phidgets_api
