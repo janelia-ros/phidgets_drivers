@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.5)
-project(phidgets_digital_outputs)
+project(phidgets_digital_output)
 
 # Default to C++14
 if(NOT CMAKE_CXX_STANDARD)
@@ -19,8 +19,8 @@ find_package(std_msgs REQUIRED)
 
 include_directories(include)
 
-add_library(phidgets_digital_outputs SHARED src/digital_outputs_ros_i.cpp)
-ament_target_dependencies(phidgets_digital_outputs
+add_library(phidgets_digital_output SHARED src/digital_output_ros_i.cpp)
+ament_target_dependencies(phidgets_digital_output
   phidgets_api
   phidgets_msgs
   rclcpp
@@ -28,10 +28,10 @@ ament_target_dependencies(phidgets_digital_outputs
   std_msgs
 )
 
-rclcpp_components_register_nodes(phidgets_digital_outputs
-  "phidgets::DigitalOutputsRosI")
+rclcpp_components_register_nodes(phidgets_digital_output
+  "phidgets::DigitalOutputRosI")
 
-install(TARGETS phidgets_digital_outputs
+install(TARGETS phidgets_digital_output
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib
   RUNTIME DESTINATION bin

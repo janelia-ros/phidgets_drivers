@@ -38,7 +38,7 @@ Command Line Examples
 ---------------------
 
 ```bash
-ros2 launch phidgets_steppers steppers-launch.py
+ros2 launch phidgets_steppers stepper-launch.py
 ros2 topic echo /joint_states
 ros2 service call /get_setting_ranges00 phidgets_msgs/GetStepperSettingRanges
 ros2 service call /set_current_limit00 phidgets_msgs/SetCurrentLimit "current_limit: 1.0"

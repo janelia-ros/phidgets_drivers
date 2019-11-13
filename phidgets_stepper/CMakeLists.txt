@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.5)
-project(phidgets_steppers)
+project(phidgets_stepper)
 
 # Default to C++14
 if(NOT CMAKE_CXX_STANDARD)
@@ -21,8 +21,8 @@ find_package(sensor_msgs REQUIRED)
 
 include_directories(include)
 
-add_library(phidgets_steppers SHARED src/steppers_ros_i.cpp)
-ament_target_dependencies(phidgets_steppers
+add_library(phidgets_stepper SHARED src/stepper_ros_i.cpp)
+ament_target_dependencies(phidgets_stepper
   phidgets_api
   phidgets_msgs
   rclcpp
@@ -32,10 +32,10 @@ ament_target_dependencies(phidgets_steppers
   sensor_msgs
 )
 
-rclcpp_components_register_nodes(phidgets_steppers
-  "phidgets::SteppersRosI")
+rclcpp_components_register_nodes(phidgets_stepper
+  "phidgets::StepperRosI")
 
-install(TARGETS phidgets_steppers
+install(TARGETS phidgets_stepper
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib
   RUNTIME DESTINATION bin

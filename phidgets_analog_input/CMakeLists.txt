@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.5)
-project(phidgets_analog_inputs)
+project(phidgets_analog_input)
 
 # Default to C++14
 if(NOT CMAKE_CXX_STANDARD)
@@ -18,18 +18,18 @@ find_package(std_msgs REQUIRED)
 
 include_directories(include)
 
-add_library(phidgets_analog_inputs SHARED src/analog_inputs_ros_i.cpp)
-ament_target_dependencies(phidgets_analog_inputs
+add_library(phidgets_analog_input SHARED src/analog_input_ros_i.cpp)
+ament_target_dependencies(phidgets_analog_input
   phidgets_api
   rclcpp
   rclcpp_components
   std_msgs
 )
 
-rclcpp_components_register_nodes(phidgets_analog_inputs
-  "phidgets::AnalogInputsRosI")
+rclcpp_components_register_nodes(phidgets_analog_input
+  "phidgets::AnalogInputRosI")
 
-install(TARGETS phidgets_analog_inputs
+install(TARGETS phidgets_analog_input
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib
   RUNTIME DESTINATION bin

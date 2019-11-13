@@ -27,50 +27,61 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef PHIDGETS_DIGITAL_OUTPUTS_DIGITAL_OUTPUTS_ROS_I_H
-#define PHIDGETS_DIGITAL_OUTPUTS_DIGITAL_OUTPUTS_ROS_I_H
+#ifndef PHIDGETS_MOTOR_MOTOR_ROS_I_H
+#define PHIDGETS_MOTOR_MOTOR_ROS_I_H
 
 #include <memory>
+#include <mutex>
 #include <string>
 #include <vector>
 
-#include <rclcpp/rclcpp.hpp>
-#include <std_msgs/msg/bool.hpp>
+#include <chrono>
+#include <functional>
+#include <stdexcept>
 
-#include "phidgets_api/digital_outputs.hpp"
-#include "phidgets_msgs/srv/set_digital_output.hpp"
+#include <rclcpp/rclcpp.hpp>
+#include <rclcpp_components/register_node_macro.hpp>
+#include <std_msgs/msg/float64.hpp>
+
+#include "phidgets_api/motor.hpp"
 
 namespace phidgets
 {
-class DigitalOutputsRosI;
-
-class DigitalOutputSetter final
+class RosMotor : public Motor
 {
 public:
-  explicit DigitalOutputSetter(DigitalOutputs* dos, int index, DigitalOutputsRosI* node, const std::string& topicname);
+  explicit RosMotor(rclcpp::Node* node, const ChannelAddress& channel_address);
+
+  void publishDutyCycle();
+  void publishBackEMF();
 
 private:
-  void setMsgCallback(const std_msgs::msg::Bool::SharedPtr msg);
-  rclcpp::Subscription<std_msgs::msg::Bool>::SharedPtr subscription_;
-  DigitalOutputs* dos_;
-  int index_;
+  std::mutex ros_motor_mutex_;
+  enum
+  {
+    INTERFACE_NAME_LENGTH_MAX = 200
+  };
+  rclcpp::Publisher<std_msgs::msg::Float64>::SharedPtr duty_cycle_publisher_;
+  rclcpp::Publisher<std_msgs::msg::Float64>::SharedPtr back_emf_publisher_;
+  rclcpp::Subscription<std_msgs::msg::Float64>::SharedPtr duty_cycle_subscription_;
+
+  void dutyCycleCallback(const std_msgs::msg::Float64::SharedPtr msg);
 };
 
-class DigitalOutputsRosI final : public rclcpp::Node
+class MotorRosI final : public rclcpp::Node
 {
 public:
-  explicit DigitalOutputsRosI(const rclcpp::NodeOptions& options);
+  explicit MotorRosI(const rclcpp::NodeOptions& options);
 
 private:
-  std::unique_ptr<DigitalOutputs> dos_;
-  std::vector<std::unique_ptr<DigitalOutputSetter>> out_subs_;
+  std::unordered_map<std::string, std::unique_ptr<RosMotor>> ros_motors_;
 
-  rclcpp::Service<phidgets_msgs::srv::SetDigitalOutput>::SharedPtr out_srv_;
+  rclcpp::TimerBase::SharedPtr timer_;
+  double publish_rate_;
 
-  void setSrvCallback(const std::shared_ptr<phidgets_msgs::srv::SetDigitalOutput::Request> req,
-                      std::shared_ptr<phidgets_msgs::srv::SetDigitalOutput::Response> res);
+  void timerCallback();
 };
 
 }  // namespace phidgets
 
-#endif  // PHIDGETS_DIGITAL_OUTPUTS_DIGITAL_OUTPUTS_ROS_I_H
+#endif  // PHIDGETS_MOTOR_MOTOR_ROS_I_H

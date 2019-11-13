@@ -27,8 +27,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef PHIDGETS_STEPPERS_STEPPERS_ROS_I_H
-#define PHIDGETS_STEPPERS_STEPPERS_ROS_I_H
+#ifndef PHIDGETS_STEPPER_STEPPER_ROS_I_H
+#define PHIDGETS_STEPPER_STEPPER_ROS_I_H
 
 #include <memory>
 #include <mutex>
@@ -46,7 +46,7 @@
 #include <phidgets_msgs/srv/set_float64.hpp>
 #include <phidgets_msgs/srv/set_position.hpp>
 
-#include "phidgets_api/steppers.hpp"
+#include "phidgets_api/stepper.hpp"
 
 namespace phidgets
 {
@@ -100,10 +100,10 @@ struct StepperDataToPub
   double last_velocity_val;
 };
 
-class SteppersRosI final : public rclcpp::Node
+class StepperRosI final : public rclcpp::Node
 {
 public:
-  explicit SteppersRosI(const rclcpp::NodeOptions& options);
+  explicit StepperRosI(const rclcpp::NodeOptions& options);
 
 private:
   enum
@@ -139,4 +139,4 @@ private:
 
 }  // namespace phidgets
 
-#endif  // PHIDGETS_STEPPERS_STEPPERS_ROS_I_H
+#endif  // PHIDGETS_STEPPER_STEPPER_ROS_I_H

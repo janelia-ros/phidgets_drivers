@@ -27,8 +27,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef PHIDGETS_ANALOG_INPUTS_ANALOG_INPUTS_ROS_I_H
-#define PHIDGETS_ANALOG_INPUTS_ANALOG_INPUTS_ROS_I_H
+#ifndef PHIDGETS_ANALOG_INPUT_ANALOG_INPUT_ROS_I_H
+#define PHIDGETS_ANALOG_INPUT_ANALOG_INPUT_ROS_I_H
 
 #include <memory>
 #include <mutex>
@@ -37,7 +37,7 @@
 #include <rclcpp/rclcpp.hpp>
 #include <std_msgs/msg/float64.hpp>
 
-#include "phidgets_api/analog_inputs.hpp"
+#include "phidgets_api/analog_input.hpp"
 
 namespace phidgets
 {
@@ -49,13 +49,13 @@ struct ValToPub
   double offset{ 0.0 };
 };
 
-class AnalogInputsRosI final : public rclcpp::Node
+class AnalogInputRosI final : public rclcpp::Node
 {
 public:
-  explicit AnalogInputsRosI(const rclcpp::NodeOptions& options);
+  explicit AnalogInputRosI(const rclcpp::NodeOptions& options);
 
 private:
-  std::unique_ptr<AnalogInputs> ais_;
+  std::unique_ptr<AnalogInput> ais_;
   std::mutex ai_mutex_;
   std::vector<ValToPub> val_to_pubs_;
 
@@ -70,4 +70,4 @@ private:
 
 }  // namespace phidgets
 
-#endif  // PHIDGETS_ANALOG_INPUTS_ANALOG_INPUTS_ROS_I_H
+#endif  // PHIDGETS_ANALOG_INPUT_ANALOG_INPUT_ROS_I_H

@@ -1,4 +1,4 @@
-# Copyright 2019 Open Source Robotics Foundation, Inc.
+# Copyright 2019 Howard Hughes Medical Institute
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Launch a Phidgets digital outputs in a component container."""
+"""Launch a Phidgets stepper in a component container."""
 
 import launch
 from launch_ros.actions import ComposableNodeContainer
@@ -28,9 +28,9 @@ def generate_launch_description():
             node_executable='component_container',
             composable_node_descriptions=[
                 ComposableNode(
-                    package='phidgets_digital_outputs',
-                    node_plugin='phidgets::DigitalOutputsRosI',
-                    node_name='phidgets_digital_outputs'),
+                    package='phidgets_stepper',
+                    node_plugin='phidgets::StepperRosI',
+                    node_name='phidgets_stepper'),
             ],
             output='both',
     )

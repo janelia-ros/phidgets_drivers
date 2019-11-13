@@ -36,8 +36,8 @@
 #include <rclcpp/rclcpp.hpp>
 #include <rclcpp_components/register_node_macro.hpp>
 
-#include "phidgets_api/steppers.hpp"
-#include "phidgets_steppers/steppers_ros_i.hpp"
+#include "phidgets_api/stepper.hpp"
+#include "phidgets_stepper/stepper_ros_i.hpp"
 
 namespace phidgets
 {
@@ -247,17 +247,17 @@ void StepperInterface::getSettingRangesCallback(
   res->success = success;
 }
 
-SteppersRosI::SteppersRosI(const rclcpp::NodeOptions& options) : rclcpp::Node("phidgets_steppers_node", options)
+StepperRosI::StepperRosI(const rclcpp::NodeOptions& options) : rclcpp::Node("phidgets_stepper_node", options)
 {
   setvbuf(stdout, NULL, _IONBF, BUFSIZ);
 
-  RCLCPP_INFO(get_logger(), "Starting Phidgets Steppers");
+  RCLCPP_INFO(get_logger(), "Starting Phidgets Stepper");
 
   int serial_num = this->declare_parameter("serial", -1);  // default open any device
 
   int hub_port = this->declare_parameter("hub_port", 0);  // only used if the device is on a VINT hub_port
 
-  RCLCPP_INFO(get_logger(), "Connecting to Phidgets Steppers serial %d, hub port %d ...", serial_num, hub_port);
+  RCLCPP_INFO(get_logger(), "Connecting to Phidgets Stepper serial %d, hub port %d ...", serial_num, hub_port);
 
   int data_interval_ms = this->declare_parameter("data_interval_ms", 250);
 
@@ -275,7 +275,7 @@ SteppersRosI::SteppersRosI(const rclcpp::NodeOptions& options) : rclcpp::Node("p
   // divide watchdog interval by 4 to abide rule about 1/3 failsafe time
   // update
   watchdog_timer_ = this->create_wall_timer(std::chrono::milliseconds(static_cast<int64_t>(watchdog_interval_ms / 4)),
-                                            std::bind(&SteppersRosI::watchdogTimerCallback, this));
+                                            std::bind(&StepperRosI::watchdogTimerCallback, this));
 
   frame_id_ = this->declare_parameter("frame_id", "stepper");
 
@@ -289,14 +289,14 @@ SteppersRosI::SteppersRosI(const rclcpp::NodeOptions& options) : rclcpp::Node("p
   {
     steppers_ = std::make_unique<Steppers>(
         serial_num, hub_port, false,
-        std::bind(&SteppersRosI::positionChangeCallback, this, std::placeholders::_1, std::placeholders::_2),
-        std::bind(&SteppersRosI::velocityChangeCallback, this, std::placeholders::_1, std::placeholders::_2),
-        std::bind(&SteppersRosI::stoppedCallback, this, std::placeholders::_1));
+        std::bind(&StepperRosI::positionChangeCallback, this, std::placeholders::_1, std::placeholders::_2),
+        std::bind(&StepperRosI::velocityChangeCallback, this, std::placeholders::_1, std::placeholders::_2),
+        std::bind(&StepperRosI::stoppedCallback, this, std::placeholders::_1));
 
     n_steppers = steppers_->getStepperCount();
     if (n_steppers != 1)
     {
-      RCLCPP_INFO(get_logger(), "Connected to serial %d, %d steppers", steppers_->getSerialNumber(), n_steppers);
+      RCLCPP_INFO(get_logger(), "Connected to serial %d, %d stepper", steppers_->getSerialNumber(), n_steppers);
     }
     else
     {
@@ -339,7 +339,7 @@ SteppersRosI::SteppersRosI(const rclcpp::NodeOptions& options) : rclcpp::Node("p
   }
   catch (const Phidget22Error& err)
   {
-    RCLCPP_ERROR(get_logger(), "Steppers: %s", err.what());
+    RCLCPP_ERROR(get_logger(), "Stepper: %s", err.what());
     throw;
   }
 
@@ -349,7 +349,7 @@ SteppersRosI::SteppersRosI(const rclcpp::NodeOptions& options) : rclcpp::Node("p
   {
     double pub_msec = 1000.0 / publish_rate_;
     publish_timer_ = this->create_wall_timer(std::chrono::milliseconds(static_cast<int64_t>(pub_msec)),
-                                             std::bind(&SteppersRosI::publishTimerCallback, this));
+                                             std::bind(&StepperRosI::publishTimerCallback, this));
   }
   else
   {
@@ -361,13 +361,13 @@ SteppersRosI::SteppersRosI(const rclcpp::NodeOptions& options) : rclcpp::Node("p
   }
 }
 
-void SteppersRosI::publishTimerCallback()
+void StepperRosI::publishTimerCallback()
 {
   std::lock_guard<std::mutex> lock(stepper_mutex_);
   publishLatestJointStates();
 }
 
-void SteppersRosI::publishLatestJointStates()
+void StepperRosI::publishLatestJointStates()
 {
   sensor_msgs::msg::JointState msg;
 
@@ -383,13 +383,13 @@ void SteppersRosI::publishLatestJointStates()
   stepper_pub_->publish(msg);
 }
 
-void SteppersRosI::watchdogTimerCallback()
+void StepperRosI::watchdogTimerCallback()
 {
   std::lock_guard<std::mutex> lock(stepper_mutex_);
   kickWatchdogTimers();
 }
 
-void SteppersRosI::kickWatchdogTimers()
+void StepperRosI::kickWatchdogTimers()
 {
   for (size_t channel = 0; channel < steppers_->getStepperCount(); channel++)
   {
@@ -397,7 +397,7 @@ void SteppersRosI::kickWatchdogTimers()
   }
 }
 
-void SteppersRosI::positionChangeCallback(int channel, double position)
+void StepperRosI::positionChangeCallback(int channel, double position)
 {
   if (static_cast<int>(stepper_data_to_pub_.size()) > channel)
   {
@@ -411,7 +411,7 @@ void SteppersRosI::positionChangeCallback(int channel, double position)
   }
 }
 
-void SteppersRosI::velocityChangeCallback(int channel, double velocity)
+void StepperRosI::velocityChangeCallback(int channel, double velocity)
 {
   if (static_cast<int>(stepper_data_to_pub_.size()) > channel)
   {
@@ -425,7 +425,7 @@ void SteppersRosI::velocityChangeCallback(int channel, double velocity)
   }
 }
 
-void SteppersRosI::stoppedCallback(int channel)
+void StepperRosI::stoppedCallback(int channel)
 {
   (void)channel;  // remove unused parameter warning
   RCLCPP_INFO(get_logger(), "Stopped!");
@@ -433,4 +433,4 @@ void SteppersRosI::stoppedCallback(int channel)
 
 }  // namespace phidgets
 
-RCLCPP_COMPONENTS_REGISTER_NODE(phidgets::SteppersRosI)
+RCLCPP_COMPONENTS_REGISTER_NODE(phidgets::StepperRosI)

@@ -35,19 +35,19 @@
 
 #include <rclcpp/rclcpp.hpp>
 #include <rclcpp_components/register_node_macro.hpp>
-#include <std_msgs/msg/float64.hpp>
+#include <std_msgs/msg/bool.hpp>
 
-#include "phidgets_analog_inputs/analog_inputs_ros_i.hpp"
-#include "phidgets_api/analog_inputs.hpp"
+#include "phidgets_api/digital_input.hpp"
+#include "phidgets_digital_input/digital_input_ros_i.hpp"
 
 namespace phidgets
 {
-AnalogInputsRosI::AnalogInputsRosI(const rclcpp::NodeOptions& options)
-  : rclcpp::Node("phidgets_analog_inputs_node", options)
+DigitalInputRosI::DigitalInputRosI(const rclcpp::NodeOptions& options)
+  : rclcpp::Node("phidgets_digital_input_node", options)
 {
   setvbuf(stdout, NULL, _IONBF, BUFSIZ);
 
-  RCLCPP_INFO(get_logger(), "Starting Phidgets AnalogInputs");
+  RCLCPP_INFO(get_logger(), "Starting Phidgets DigitalInput");
 
   int serial_num = this->declare_parameter("serial", -1);  // default open any device
 
@@ -56,50 +56,40 @@ AnalogInputsRosI::AnalogInputsRosI(const rclcpp::NodeOptions& options)
   // only used if the device is on a VINT hub_port
   bool is_hub_port_device = this->declare_parameter("is_hub_port_device", false);
 
-  int data_interval_ms = this->declare_parameter("data_interval_ms", 250);
-
   publish_rate_ = this->declare_parameter("publish_rate", 0.0);
   if (publish_rate_ > 1000.0)
   {
     throw std::runtime_error("Publish rate must be <= 1000");
   }
 
-  RCLCPP_INFO(get_logger(), "Connecting to Phidgets AnalogInputs serial %d, hub port %d ...", serial_num, hub_port);
+  RCLCPP_INFO(get_logger(), "Connecting to Phidgets DigitalInput serial %d, hub port %d ...", serial_num, hub_port);
 
   // We take the mutex here and don't unlock until the end of the constructor
   // to prevent a callback from trying to use the publisher before we are
   // finished setting up.
-  std::lock_guard<std::mutex> lock(ai_mutex_);
+  std::lock_guard<std::mutex> lock(di_mutex_);
 
   int n_in;
   try
   {
-    ais_ = std::make_unique<AnalogInputs>(
+    dis_ = std::make_unique<DigitalInput>(
         serial_num, hub_port, is_hub_port_device,
-        std::bind(&AnalogInputsRosI::sensorChangeCallback, this, std::placeholders::_1, std::placeholders::_2));
+        std::bind(&DigitalInputRosI::stateChangeCallback, this, std::placeholders::_1, std::placeholders::_2));
 
-    n_in = ais_->getInputCount();
-    RCLCPP_INFO(get_logger(), "Connected to serial %d, %d inputs", ais_->getSerialNumber(), n_in);
+    n_in = dis_->getInputCount();
+    RCLCPP_INFO(get_logger(), "Connected to serial %d, %d input", dis_->getSerialNumber(), n_in);
     val_to_pubs_.resize(n_in);
     for (int i = 0; i < n_in; i++)
     {
-      char str[100];
-      snprintf(str, sizeof(str), "gain%02d", i);
-      val_to_pubs_[i].gain = this->declare_parameter(str, 1.0);
-
-      snprintf(str, sizeof(str), "offset%02d", i);
-      val_to_pubs_[i].offset = this->declare_parameter(str, 0.0);
-
-      char topicname[] = "analog_input00";
-      snprintf(topicname, sizeof(topicname), "analog_input%02d", i);
-      val_to_pubs_[i].pub = this->create_publisher<std_msgs::msg::Float64>(topicname, 1);
-
-      ais_->setDataInterval(i, data_interval_ms);
+      char topicname[] = "digital_input00";
+      snprintf(topicname, sizeof(topicname), "digital_input%02d", i);
+      val_to_pubs_[i].pub = this->create_publisher<std_msgs::msg::Bool>(topicname, 1);
+      val_to_pubs_[i].last_val = dis_->getInputValue(i);
     }
   }
   catch (const Phidget22Error& err)
   {
-    RCLCPP_ERROR(get_logger(), "AnalogInputs: %s", err.what());
+    RCLCPP_ERROR(get_logger(), "DigitalInput: %s", err.what());
     throw;
   }
 
@@ -107,7 +97,7 @@ AnalogInputsRosI::AnalogInputsRosI(const rclcpp::NodeOptions& options)
   {
     double pub_msec = 1000.0 / publish_rate_;
     timer_ = this->create_wall_timer(std::chrono::milliseconds(static_cast<int64_t>(pub_msec)),
-                                     std::bind(&AnalogInputsRosI::timerCallback, this));
+                                     std::bind(&DigitalInputRosI::timerCallback, this));
   }
   else
   {
@@ -122,28 +112,28 @@ AnalogInputsRosI::AnalogInputsRosI(const rclcpp::NodeOptions& options)
   }
 }
 
-void AnalogInputsRosI::publishLatest(int index)
+void DigitalInputRosI::publishLatest(int index)
 {
-  auto msg = std::make_unique<std_msgs::msg::Float64>();
-  msg->data = val_to_pubs_[index].last_val * val_to_pubs_[index].gain + val_to_pubs_[index].offset;
+  auto msg = std::make_unique<std_msgs::msg::Bool>();
+  msg->data = val_to_pubs_[index].last_val;
   val_to_pubs_[index].pub->publish(std::move(msg));
 }
 
-void AnalogInputsRosI::timerCallback()
+void DigitalInputRosI::timerCallback()
 {
-  std::lock_guard<std::mutex> lock(ai_mutex_);
+  std::lock_guard<std::mutex> lock(di_mutex_);
   for (int i = 0; i < static_cast<int>(val_to_pubs_.size()); ++i)
   {
     publishLatest(i);
   }
 }
 
-void AnalogInputsRosI::sensorChangeCallback(int index, double sensor_value)
+void DigitalInputRosI::stateChangeCallback(int index, int input_value)
 {
   if (static_cast<int>(val_to_pubs_.size()) > index)
   {
-    std::lock_guard<std::mutex> lock(ai_mutex_);
-    val_to_pubs_[index].last_val = sensor_value;
+    std::lock_guard<std::mutex> lock(di_mutex_);
+    val_to_pubs_[index].last_val = input_value == 0;
 
     if (publish_rate_ <= 0.0)
     {
@@ -154,4 +144,4 @@ void AnalogInputsRosI::sensorChangeCallback(int index, double sensor_value)
 
 }  // namespace phidgets
 
-RCLCPP_COMPONENTS_REGISTER_NODE(phidgets::AnalogInputsRosI)
+RCLCPP_COMPONENTS_REGISTER_NODE(phidgets::DigitalInputRosI)

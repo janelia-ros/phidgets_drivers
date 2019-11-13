@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Launch a Phidgets motors in a component container."""
+"""Launch a Phidgets motor in a component container."""
 
 import launch
 from launch_ros.actions import ComposableNodeContainer
@@ -28,9 +28,9 @@ def generate_launch_description():
             node_executable='component_container',
             composable_node_descriptions=[
                 ComposableNode(
-                    package='phidgets_motors',
-                    node_plugin='phidgets::MotorsRosI',
-                    node_name='phidgets_motors'),
+                    package='phidgets_motor',
+                    node_plugin='phidgets::MotorRosI',
+                    node_name='phidgets_motor'),
             ],
             output='both',
     )

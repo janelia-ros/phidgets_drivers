@@ -27,7 +27,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "phidgets_motors/motors_ros_i.hpp"
+#include "phidgets_motor/motor_ros_i.hpp"
 
 namespace phidgets
 {
@@ -82,11 +82,11 @@ void RosMotor::dutyCycleCallback(const std_msgs::msg::Float64::SharedPtr msg)
   }
 }
 
-MotorsRosI::MotorsRosI(const rclcpp::NodeOptions& options) : rclcpp::Node("phidgets_motors_node", options)
+MotorRosI::MotorRosI(const rclcpp::NodeOptions& options) : rclcpp::Node("phidgets_motor_node", options)
 {
   setvbuf(stdout, NULL, _IONBF, BUFSIZ);
 
-  RCLCPP_INFO(get_logger(), "Starting Phidgets Motors");
+  RCLCPP_INFO(get_logger(), "Starting Phidgets Motor");
 
   ChannelAddress channel_address;
   channel_address.serial_number = this->declare_parameter("serial", -1);  // default open any device
@@ -103,7 +103,7 @@ MotorsRosI::MotorsRosI(const rclcpp::NodeOptions& options) : rclcpp::Node("phidg
     throw std::runtime_error("Publish rate must be <= 1000");
   }
 
-  RCLCPP_INFO(get_logger(), "Connecting to Phidgets Motors serial %d, hub port %d ...", channel_address.serial_number,
+  RCLCPP_INFO(get_logger(), "Connecting to Phidgets Motor serial %d, hub port %d ...", channel_address.serial_number,
               channel_address.hub_port);
 
   int n_motors;
@@ -115,7 +115,7 @@ MotorsRosI::MotorsRosI(const rclcpp::NodeOptions& options) : rclcpp::Node("phidg
     {
       std::string key = std::to_string(i);
       ros_motors_[key] = std::make_unique<RosMotor>(this, channel_address);
-      RCLCPP_INFO(get_logger(), "Connected to serial %d, %d motors",
+      RCLCPP_INFO(get_logger(), "Connected to serial %d, %d motor",
                   ros_motors_.at(key)->getChannelAddress().serial_number, n_motors);
 
       ros_motors_.at(key)->setDataInterval(data_interval_ms);
@@ -124,7 +124,7 @@ MotorsRosI::MotorsRosI(const rclcpp::NodeOptions& options) : rclcpp::Node("phidg
   }
   catch (const Phidget22Error& err)
   {
-    RCLCPP_ERROR(get_logger(), "Motors: %s", err.what());
+    RCLCPP_ERROR(get_logger(), "Motor: %s", err.what());
     throw;
   }
 
@@ -132,7 +132,7 @@ MotorsRosI::MotorsRosI(const rclcpp::NodeOptions& options) : rclcpp::Node("phidg
   {
     double pub_msec = 1000.0 / publish_rate_;
     timer_ = this->create_wall_timer(std::chrono::milliseconds(static_cast<int64_t>(pub_msec)),
-                                     std::bind(&MotorsRosI::timerCallback, this));
+                                     std::bind(&MotorRosI::timerCallback, this));
   }
   else
   {
@@ -144,7 +144,7 @@ MotorsRosI::MotorsRosI(const rclcpp::NodeOptions& options) : rclcpp::Node("phidg
   }
 }
 
-void MotorsRosI::timerCallback()
+void MotorRosI::timerCallback()
 {
   for (auto& ros_motor_pair : ros_motors_)
   {
@@ -155,4 +155,4 @@ void MotorsRosI::timerCallback()
 
 }  // namespace phidgets
 
-RCLCPP_COMPONENTS_REGISTER_NODE(phidgets::MotorsRosI)
+RCLCPP_COMPONENTS_REGISTER_NODE(phidgets::MotorRosI)

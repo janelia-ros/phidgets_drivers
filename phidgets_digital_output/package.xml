@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>phidgets_digital_outputs</name>
+  <name>phidgets_digital_output</name>
   <version>0.7.9</version>
   <description>Driver for the Phidgets Digital Output devices</description>
 

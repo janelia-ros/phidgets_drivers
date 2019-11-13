@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>phidgets_motors</name>
+  <name>phidgets_motor</name>
   <version>0.7.9</version>
   <description>Driver for the Phidgets Motor devices</description>
 

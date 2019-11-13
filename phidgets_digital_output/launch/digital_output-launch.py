@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Launch a Phidgets analog inputs in a component container."""
+"""Launch a Phidgets digital output in a component container."""
 
 import launch
 from launch_ros.actions import ComposableNodeContainer
@@ -28,9 +28,9 @@ def generate_launch_description():
             node_executable='component_container',
             composable_node_descriptions=[
                 ComposableNode(
-                    package='phidgets_analog_inputs',
-                    node_plugin='phidgets::AnalogInputsRosI',
-                    node_name='phidgets_analog_inputs'),
+                    package='phidgets_digital_output',
+                    node_plugin='phidgets::DigitalOutputRosI',
+                    node_name='phidgets_digital_output'),
             ],
             output='both',
     )

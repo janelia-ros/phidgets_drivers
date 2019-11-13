@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>phidgets_steppers</name>
+  <name>phidgets_stepper</name>
   <version>0.7.9</version>
   <description>Driver for the Phidgets Stepper devices</description>
 

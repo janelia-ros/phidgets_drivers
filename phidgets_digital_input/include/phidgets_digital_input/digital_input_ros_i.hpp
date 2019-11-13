@@ -27,8 +27,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef PHIDGETS_DIGITAL_INPUTS_DIGITAL_INPUTS_ROS_I_H
-#define PHIDGETS_DIGITAL_INPUTS_DIGITAL_INPUTS_ROS_I_H
+#ifndef PHIDGETS_DIGITAL_INPUT_DIGITAL_INPUT_ROS_I_H
+#define PHIDGETS_DIGITAL_INPUT_DIGITAL_INPUT_ROS_I_H
 
 #include <memory>
 #include <mutex>
@@ -37,7 +37,7 @@
 #include <rclcpp/rclcpp.hpp>
 #include <std_msgs/msg/bool.hpp>
 
-#include "phidgets_api/digital_inputs.hpp"
+#include "phidgets_api/digital_input.hpp"
 
 namespace phidgets
 {
@@ -47,13 +47,13 @@ struct ValToPub
   bool last_val;
 };
 
-class DigitalInputsRosI final : public rclcpp::Node
+class DigitalInputRosI final : public rclcpp::Node
 {
 public:
-  explicit DigitalInputsRosI(const rclcpp::NodeOptions& options);
+  explicit DigitalInputRosI(const rclcpp::NodeOptions& options);
 
 private:
-  std::unique_ptr<DigitalInputs> dis_;
+  std::unique_ptr<DigitalInput> dis_;
   std::mutex di_mutex_;
   std::vector<ValToPub> val_to_pubs_;
 
@@ -68,4 +68,4 @@ private:
 
 }  // namespace phidgets
 
-#endif  // PHIDGETS_DIGITAL_INPUTS_DIGITAL_INPUTS_ROS_I_H
+#endif  // PHIDGETS_DIGITAL_INPUT_DIGITAL_INPUT_ROS_I_H
