@@ -35,54 +35,51 @@
 #include <string>
 #include <vector>
 
-#include <std_msgs/msg/float64.h>
+#include <chrono>
+#include <functional>
+#include <stdexcept>
+
 #include <rclcpp/rclcpp.hpp>
+#include <rclcpp_components/register_node_macro.hpp>
+#include <std_msgs/msg/float64.hpp>
 
-#include "phidgets_api/motors.hpp"
+#include "phidgets_api/motor.hpp"
 
-namespace phidgets {
-
-class DutyCycleSetter final
+namespace phidgets
 {
-  public:
-    explicit DutyCycleSetter(Motors* motors, int index, rclcpp::Node* node,
-                             const std::string& topicname);
+class RosMotor : public Motor
+{
+public:
+  explicit RosMotor(rclcpp::Node* node, const ChannelAddress& channel_address);
 
-  private:
-    void setMsgCallback(const std_msgs::msg::Float64::SharedPtr msg);
-    rclcpp::Subscription<std_msgs::msg::Float64>::SharedPtr subscription_;
-    Motors* motors_;
-    int index_;
-};
+  void publishDutyCycle();
+  void publishBackEMF();
 
-struct MotorVals {
-    std::unique_ptr<DutyCycleSetter> duty_cycle_sub;
-    double last_duty_cycle_val;
-    double last_back_emf_val;
-    rclcpp::Publisher<std_msgs::msg::Float64>::SharedPtr duty_cycle_pub;
-    rclcpp::Publisher<std_msgs::msg::Float64>::SharedPtr back_emf_pub;
+private:
+  std::mutex ros_motor_mutex_;
+  enum
+  {
+    INTERFACE_NAME_LENGTH_MAX = 200
+  };
+  rclcpp::Publisher<std_msgs::msg::Float64>::SharedPtr duty_cycle_publisher_;
+  rclcpp::Publisher<std_msgs::msg::Float64>::SharedPtr back_emf_publisher_;
+  rclcpp::Subscription<std_msgs::msg::Float64>::SharedPtr duty_cycle_subscription_;
+
+  void dutyCycleCallback(const std_msgs::msg::Float64::SharedPtr msg);
 };
 
 class MotorsRosI final : public rclcpp::Node
 {
-  public:
-    explicit MotorsRosI(const rclcpp::NodeOptions& options);
+public:
+  explicit MotorsRosI(const rclcpp::NodeOptions& options);
 
-  private:
-    std::unique_ptr<Motors> motors_;
-    std::mutex motor_mutex_;
-    std::vector<MotorVals> motor_vals_;
+private:
+  std::unordered_map<std::string, std::unique_ptr<RosMotor>> ros_motors_;
 
-    void timerCallback();
-    rclcpp::TimerBase::SharedPtr timer_;
-    double publish_rate_;
+  rclcpp::TimerBase::SharedPtr timer_;
+  double publish_rate_;
 
-    void publishLatestDutyCycle(int index);
-    void publishLatestBackEMF(int index);
-
-    void dutyCycleChangeCallback(int channel, double duty_cycle);
-
-    void backEMFChangeCallback(int channel, double back_emf);
+  void timerCallback();
 };
 
 }  // namespace phidgets

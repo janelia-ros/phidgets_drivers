@@ -30,38 +30,55 @@
 #ifndef PHIDGETS_API_PHIDGET22_H
 #define PHIDGETS_API_PHIDGET22_H
 
+#include <memory>
 #include <stdexcept>
 #include <string>
+#include <unordered_map>
 
 #include <libphidget22/phidget22.h>
 
-#define PHIDGET22_NO_COPY_NO_MOVE_NO_ASSIGN(Classname) \
-    Classname(const Classname &) = delete;             \
-    void operator=(const Classname &) = delete;        \
-    Classname(Classname &&) = delete;                  \
-    void operator=(Classname &&) = delete;
+#define PHIDGET22_NO_COPY_NO_MOVE_NO_ASSIGN(Classname)                                                                 \
+  Classname(const Classname&) = delete;                                                                                \
+  void operator=(const Classname&) = delete;                                                                           \
+  Classname(Classname&&) = delete;                                                                                     \
+  void operator=(Classname&&) = delete;
 
-namespace phidgets {
-
+namespace phidgets
+{
 class Phidget22Error final : public std::exception
 {
-  public:
-    explicit Phidget22Error(const std::string &msg, PhidgetReturnCode code);
+public:
+  explicit Phidget22Error(const std::string& msg, PhidgetReturnCode code);
 
-    const char *what() const noexcept;
+  const char* what() const noexcept;
 
-  private:
-    std::string msg_;
+private:
+  std::string msg_;
 };
 
-namespace helpers {
+struct ChannelAddress
+{
+  int32_t serial_number = PHIDGET_SERIALNUMBER_ANY;
+  int hub_port = PHIDGET_HUBPORT_ANY;
+  bool is_hub_port_device = false;
+  int channel = PHIDGET_CHANNEL_ANY;
+};
 
-void openWaitForAttachment(PhidgetHandle handle, int32_t serial_number,
-                           int hub_port, bool is_hub_port_device, int channel);
+class PhidgetChannel
+{
+public:
+  explicit PhidgetChannel(const ChannelAddress& channel_address);
 
-void closeAndDelete(PhidgetHandle *handle) noexcept;
+  void openWaitForAttachment(const PhidgetHandle& handle, const ChannelAddress& channel_address);
 
-}  // namespace helpers
+  void close(const PhidgetHandle& handle) noexcept;
+
+  const ChannelAddress& getChannelAddress() const noexcept;
+
+private:
+  ChannelAddress channel_address_;
+};
+
 }  // namespace phidgets
 
 #endif  // PHIDGETS_API_PHIDGET22_H

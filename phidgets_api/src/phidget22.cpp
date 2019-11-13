@@ -27,74 +27,100 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <string>
-
 #include "phidgets_api/phidget22.hpp"
 
-namespace phidgets {
-
-Phidget22Error::Phidget22Error(const std::string &msg, PhidgetReturnCode code)
-    : std::exception()
+namespace phidgets
 {
-    const char *error_ptr;
-    PhidgetReturnCode ret = Phidget_getErrorDescription(code, &error_ptr);
-    if (ret == EPHIDGET_OK)
-    {
-        msg_ = msg + ": " + std::string(error_ptr);
-    } else
-    {
-        msg_ = msg + ": Unknown error";
-    }
+Phidget22Error::Phidget22Error(const std::string& msg, PhidgetReturnCode code) : std::exception()
+{
+  const char* error_ptr;
+  PhidgetReturnCode ret = Phidget_getErrorDescription(code, &error_ptr);
+  if (ret == EPHIDGET_OK)
+  {
+    msg_ = msg + ": " + std::string(error_ptr);
+  }
+  else
+  {
+    msg_ = msg + ": Unknown error";
+  }
 }
 
-const char *Phidget22Error::what() const noexcept
+const char* Phidget22Error::what() const noexcept
 {
-    return msg_.c_str();
+  return msg_.c_str();
 }
 
-namespace helpers {
-
-void openWaitForAttachment(PhidgetHandle handle, int32_t serial_number,
-                           int hub_port, bool is_hub_port_device, int channel)
+PhidgetChannel::PhidgetChannel(const ChannelAddress& channel_address) : channel_address_(channel_address)
 {
-    PhidgetReturnCode ret;
-
-    ret = Phidget_setDeviceSerialNumber(handle, serial_number);
-    if (ret != EPHIDGET_OK)
-    {
-        throw Phidget22Error("Failed to set device serial number", ret);
-    }
-
-    ret = Phidget_setHubPort(handle, hub_port);
-    if (ret != EPHIDGET_OK)
-    {
-        throw Phidget22Error("Failed to set device hub port", ret);
-    }
-
-    ret = Phidget_setIsHubPortDevice(handle, is_hub_port_device);
-    if (ret != EPHIDGET_OK)
-    {
-        throw Phidget22Error("Failed to set device is hub port device", ret);
-    }
-
-    ret = Phidget_setChannel(handle, channel);
-    if (ret != EPHIDGET_OK)
-    {
-        throw Phidget22Error("Failed to set device channel", ret);
-    }
-
-    ret = Phidget_openWaitForAttachment(handle, PHIDGET_TIMEOUT_DEFAULT);
-    if (ret != EPHIDGET_OK)
-    {
-        throw Phidget22Error("Failed to open device", ret);
-    }
 }
 
-void closeAndDelete(PhidgetHandle *handle) noexcept
+void PhidgetChannel::openWaitForAttachment(const PhidgetHandle& handle, const ChannelAddress& channel_address)
 {
-    Phidget_close(*handle);
-    Phidget_delete(handle);
+  PhidgetReturnCode ret;
+
+  ret = Phidget_setDeviceSerialNumber(handle, channel_address.serial_number);
+  if (ret != EPHIDGET_OK)
+  {
+    throw Phidget22Error("Failed to set device serial number", ret);
+  }
+
+  ret = Phidget_setHubPort(handle, channel_address.hub_port);
+  if (ret != EPHIDGET_OK)
+  {
+    throw Phidget22Error("Failed to set device hub port", ret);
+  }
+
+  ret = Phidget_setIsHubPortDevice(handle, channel_address.is_hub_port_device);
+  if (ret != EPHIDGET_OK)
+  {
+    throw Phidget22Error("Failed to set device is hub port device", ret);
+  }
+
+  ret = Phidget_setChannel(handle, channel_address.channel);
+  if (ret != EPHIDGET_OK)
+  {
+    throw Phidget22Error("Failed to set device channel", ret);
+  }
+
+  ret = Phidget_openWaitForAttachment(handle, PHIDGET_TIMEOUT_DEFAULT);
+  if (ret != EPHIDGET_OK)
+  {
+    throw Phidget22Error("Failed to open device", ret);
+  }
+
+  ret = Phidget_getDeviceSerialNumber(handle, &channel_address_.serial_number);
+  if (ret != EPHIDGET_OK)
+  {
+    throw Phidget22Error("Failed to get device serial number", ret);
+  }
+
+  ret = Phidget_getHubPort(handle, &channel_address_.hub_port);
+  if (ret != EPHIDGET_OK)
+  {
+    throw Phidget22Error("Failed to get device hub port", ret);
+  }
+
+  ret = Phidget_getIsHubPortDevice(handle, (int*)&channel_address_.is_hub_port_device);
+  if (ret != EPHIDGET_OK)
+  {
+    throw Phidget22Error("Failed to get device is hub port device", ret);
+  }
+
+  ret = Phidget_getChannel(handle, &channel_address_.channel);
+  if (ret != EPHIDGET_OK)
+  {
+    throw Phidget22Error("Failed to get device channel", ret);
+  }
 }
 
-}  // namespace helpers
+void PhidgetChannel::close(const PhidgetHandle& handle) noexcept
+{
+  Phidget_close(handle);
+}
+
+const ChannelAddress& PhidgetChannel::getChannelAddress() const noexcept
+{
+  return channel_address_;
+}
+
 }  // namespace phidgets

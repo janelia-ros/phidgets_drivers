@@ -31,54 +31,51 @@
 #define PHIDGETS_API_MOTOR_H
 
 #include <functional>
+#include <string>
+#include <mutex>
 
 #include <libphidget22/phidget22.h>
 
 #include "phidgets_api/phidget22.hpp"
 
-namespace phidgets {
-
-class Motor final
+namespace phidgets
 {
-  public:
-    PHIDGET22_NO_COPY_NO_MOVE_NO_ASSIGN(Motor)
+class Motor : public PhidgetChannel
+{
+public:
+  PHIDGET22_NO_COPY_NO_MOVE_NO_ASSIGN(Motor)
 
-    explicit Motor(int32_t serial_number, int hub_port, bool is_hub_port_device,
-                   int channel,
-                   std::function<void(int, double)> duty_cycle_change_handler,
-                   std::function<void(int, double)> back_emf_change_handler);
+  explicit Motor(const ChannelAddress& channel_address, std::function<void()> duty_cycle_change_handler,
+                 std::function<void()> back_emf_change_handler);
 
-    ~Motor();
+  ~Motor();
 
-    int32_t getSerialNumber() const noexcept;
+  double getDutyCycle();
+  void setDutyCycle(double duty_cycle) const;
+  double getAcceleration() const;
+  void setAcceleration(double acceleration) const;
+  bool backEMFSensingSupported() const;
+  double getBackEMF();
+  void setDataInterval(uint32_t data_interval_ms) const;
 
-    double getDutyCycle() const;
-    void setDutyCycle(double duty_cycle) const;
-    double getAcceleration() const;
-    void setAcceleration(double acceleration) const;
-    bool backEMFSensingSupported() const;
-    double getBackEMF() const;
-    void setDataInterval(uint32_t data_interval_ms) const;
+  double getBraking() const;
+  void setBraking(double braking) const;
 
-    double getBraking() const;
-    void setBraking(double braking) const;
+  void dutyCycleChangeHandler(double duty_cycle);
 
-    void dutyCycleChangeHandler(double duty_cycle) const;
+  void backEMFChangeHandler(double back_emf);
 
-    void backEMFChangeHandler(double back_emf) const;
+private:
+  PhidgetDCMotorHandle motor_handle_;
+  bool back_emf_sensing_supported_;
+  std::mutex motor_mutex_;
+  double duty_cycle_ = 0.0;
+  std::function<void()> duty_cycle_change_handler_;
+  double back_emf_ = 0.0;
+  std::function<void()> back_emf_change_handler_;
 
-  private:
-    int32_t serial_number_;
-    int channel_;
-    std::function<void(int, double)> duty_cycle_change_handler_;
-    std::function<void(int, double)> back_emf_change_handler_;
-    PhidgetDCMotorHandle motor_handle_;
-    bool back_emf_sensing_supported_;
-
-    static void DutyCycleChangeHandler(PhidgetDCMotorHandle motor_handle,
-                                       void *ctx, double duty_cycle);
-    static void BackEMFChangeHandler(PhidgetDCMotorHandle motor_handle,
-                                     void *ctx, double back_emf);
+  static void DutyCycleChangeHandler(PhidgetDCMotorHandle motor_handle, void* ctx, double duty_cycle);
+  static void BackEMFChangeHandler(PhidgetDCMotorHandle motor_handle, void* ctx, double back_emf);
 };
 
 }  // namespace phidgets
