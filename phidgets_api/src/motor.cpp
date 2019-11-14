@@ -31,10 +31,10 @@
 
 namespace phidgets
 {
-Motor::Motor(const ChannelAddress& channel_address, std::function<void()> duty_cycle_change_handler,
+Motor::Motor(const ChannelAddress& channel_address, std::function<void()> velocity_change_handler,
              std::function<void()> back_emf_change_handler)
   : PhidgetChannel(channel_address)
-  , duty_cycle_change_handler_(duty_cycle_change_handler)
+  , velocity_change_handler_(velocity_change_handler)
   , back_emf_change_handler_(back_emf_change_handler)
 {
   PhidgetReturnCode ret = PhidgetDCMotor_create(&handle_);
@@ -45,7 +45,7 @@ Motor::Motor(const ChannelAddress& channel_address, std::function<void()> duty_c
 
   openWaitForAttachment(reinterpret_cast<PhidgetHandle>(handle_), getChannelAddress());
 
-  ret = PhidgetDCMotor_setOnVelocityUpdateHandler(handle_, DutyCycleChangeHandler, this);
+  ret = PhidgetDCMotor_setOnVelocityUpdateHandler(handle_, VelocityChangeHandler, this);
   if (ret != EPHIDGET_OK)
   {
     throw Phidget22Error("Failed to set duty cycle update handler for Motor channel " +
@@ -81,15 +81,15 @@ Motor::~Motor()
   PhidgetDCMotor_delete(&handle_);
 }
 
-double Motor::getDutyCycle()
+double Motor::getVelocity()
 {
   std::lock_guard<std::mutex> lock(mutex_);
-  return duty_cycle_;
+  return velocity_;
 }
 
-void Motor::setDutyCycle(double duty_cycle) const
+void Motor::setVelocity(double velocity) const
 {
-  PhidgetReturnCode ret = PhidgetDCMotor_setTargetVelocity(handle_, duty_cycle);
+  PhidgetReturnCode ret = PhidgetDCMotor_setTargetVelocity(handle_, velocity);
   if (ret != EPHIDGET_OK)
   {
     throw Phidget22Error("Failed to set duty cycle for Motor channel " + std::to_string(getChannelAddress().channel),
@@ -166,13 +166,13 @@ void Motor::setBraking(double braking) const
   }
 }
 
-void Motor::dutyCycleChangeHandler(double duty_cycle)
+void Motor::velocityChangeHandler(double velocity)
 {
   {
     std::lock_guard<std::mutex> lock(mutex_);
-    duty_cycle_ = duty_cycle;
+    velocity_ = velocity;
   }
-  duty_cycle_change_handler_();
+  velocity_change_handler_();
 }
 
 void Motor::backEMFChangeHandler(double back_emf)
@@ -184,9 +184,9 @@ void Motor::backEMFChangeHandler(double back_emf)
   back_emf_change_handler_();
 }
 
-void Motor::DutyCycleChangeHandler(PhidgetDCMotorHandle /* motor_handle */, void* ctx, double duty_cycle)
+void Motor::VelocityChangeHandler(PhidgetDCMotorHandle /* motor_handle */, void* ctx, double velocity)
 {
-  ((Motor*)ctx)->dutyCycleChangeHandler(duty_cycle);
+  ((Motor*)ctx)->velocityChangeHandler(velocity);
 }
 
 void Motor::BackEMFChangeHandler(PhidgetDCMotorHandle /* motor_handle */, void* ctx, double back_emf)

@@ -45,13 +45,13 @@ class Motor : public PhidgetChannel
 public:
   PHIDGET22_NO_COPY_NO_MOVE_NO_ASSIGN(Motor)
 
-  explicit Motor(const ChannelAddress& channel_address, std::function<void()> duty_cycle_change_handler,
+  explicit Motor(const ChannelAddress& channel_address, std::function<void()> velocity_change_handler,
                  std::function<void()> back_emf_change_handler);
 
   ~Motor();
 
-  double getDutyCycle();
-  void setDutyCycle(double duty_cycle) const;
+  double getVelocity();
+  void setVelocity(double velocity) const;
   double getAcceleration() const;
   void setAcceleration(double acceleration) const;
   bool backEMFSensingSupported() const;
@@ -61,20 +61,20 @@ public:
   double getBraking() const;
   void setBraking(double braking) const;
 
-  void dutyCycleChangeHandler(double duty_cycle);
+  void velocityChangeHandler(double velocity);
 
   void backEMFChangeHandler(double back_emf);
 
 private:
   PhidgetDCMotorHandle handle_;
   std::mutex mutex_;
-  double duty_cycle_ = 0.0;
-  std::function<void()> duty_cycle_change_handler_;
+  double velocity_ = 0.0;
+  std::function<void()> velocity_change_handler_;
   double back_emf_ = 0.0;
   std::function<void()> back_emf_change_handler_;
   bool back_emf_sensing_supported_ = true;
 
-  static void DutyCycleChangeHandler(PhidgetDCMotorHandle motor_handle, void* ctx, double duty_cycle);
+  static void VelocityChangeHandler(PhidgetDCMotorHandle motor_handle, void* ctx, double velocity);
   static void BackEMFChangeHandler(PhidgetDCMotorHandle motor_handle, void* ctx, double back_emf);
 };
 

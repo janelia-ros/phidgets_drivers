@@ -53,7 +53,7 @@ class RosMotor : public Motor
 public:
   explicit RosMotor(rclcpp::Node* node, const ChannelAddress& channel_address);
 
-  void publishDutyCycle();
+  void publishVelocity();
   void publishBackEMF();
 
 private:
@@ -62,11 +62,11 @@ private:
   {
     INTERFACE_NAME_LENGTH_MAX = 200
   };
-  rclcpp::Publisher<std_msgs::msg::Float64>::SharedPtr duty_cycle_publisher_;
+  rclcpp::Publisher<std_msgs::msg::Float64>::SharedPtr velocity_publisher_;
   rclcpp::Publisher<std_msgs::msg::Float64>::SharedPtr back_emf_publisher_;
-  rclcpp::Subscription<std_msgs::msg::Float64>::SharedPtr duty_cycle_subscription_;
+  rclcpp::Subscription<std_msgs::msg::Float64>::SharedPtr velocity_subscription_;
 
-  void dutyCycleCallback(const std_msgs::msg::Float64::SharedPtr msg);
+  void velocityCallback(const std_msgs::msg::Float64::SharedPtr msg);
 };
 
 class MotorRosI final : public rclcpp::Node

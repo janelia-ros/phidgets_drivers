@@ -32,30 +32,30 @@
 namespace phidgets
 {
 RosMotor::RosMotor(rclcpp::Node* node, const ChannelAddress& channel_address)
-  : Motor(channel_address, std::bind(&RosMotor::publishDutyCycle, this), std::bind(&RosMotor::publishBackEMF, this))
+  : Motor(channel_address, std::bind(&RosMotor::publishVelocity, this), std::bind(&RosMotor::publishBackEMF, this))
 
 {
   std::lock_guard<std::mutex> lock(mutex_);
 
   char interface_name[INTERFACE_NAME_LENGTH_MAX];
 
-  snprintf(interface_name, INTERFACE_NAME_LENGTH_MAX, "motor_duty_cycle");
-  duty_cycle_publisher_ = node->create_publisher<std_msgs::msg::Float64>(interface_name, 1);
+  snprintf(interface_name, INTERFACE_NAME_LENGTH_MAX, "motor_velocity");
+  velocity_publisher_ = node->create_publisher<std_msgs::msg::Float64>(interface_name, 1);
 
   snprintf(interface_name, INTERFACE_NAME_LENGTH_MAX, "motor_back_emf");
   back_emf_publisher_ = node->create_publisher<std_msgs::msg::Float64>(interface_name, 1);
 
-  snprintf(interface_name, INTERFACE_NAME_LENGTH_MAX, "set_motor_duty_cycle");
-  duty_cycle_subscription_ = node->create_subscription<std_msgs::msg::Float64>(
-      interface_name, rclcpp::QoS(1), std::bind(&RosMotor::dutyCycleCallback, this, std::placeholders::_1));
+  snprintf(interface_name, INTERFACE_NAME_LENGTH_MAX, "set_motor_velocity");
+  velocity_subscription_ = node->create_subscription<std_msgs::msg::Float64>(
+      interface_name, rclcpp::QoS(1), std::bind(&RosMotor::velocityCallback, this, std::placeholders::_1));
 }
 
-void RosMotor::publishDutyCycle()
+void RosMotor::publishVelocity()
 {
   std::lock_guard<std::mutex> lock(mutex_);
   auto msg = std_msgs::msg::Float64();
-  msg.data = getDutyCycle();
-  duty_cycle_publisher_->publish(msg);
+  msg.data = getVelocity();
+  velocity_publisher_->publish(msg);
 }
 
 void RosMotor::publishBackEMF()
@@ -69,11 +69,11 @@ void RosMotor::publishBackEMF()
   }
 }
 
-void RosMotor::dutyCycleCallback(const std_msgs::msg::Float64::SharedPtr msg)
+void RosMotor::velocityCallback(const std_msgs::msg::Float64::SharedPtr msg)
 {
   try
   {
-    setDutyCycle(msg->data);
+    setVelocity(msg->data);
   }
   catch (const phidgets::Phidget22Error& err)
   {
@@ -148,7 +148,7 @@ void MotorRosI::timerCallback()
 {
   for (auto& ros_motor_pair : ros_motors_)
   {
-    ros_motor_pair.second->publishDutyCycle();
+    ros_motor_pair.second->publishVelocity();
     ros_motor_pair.second->publishBackEMF();
   }
 }
