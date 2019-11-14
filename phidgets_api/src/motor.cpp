@@ -37,15 +37,15 @@ Motor::Motor(const ChannelAddress& channel_address, std::function<void()> duty_c
   , duty_cycle_change_handler_(duty_cycle_change_handler)
   , back_emf_change_handler_(back_emf_change_handler)
 {
-  PhidgetReturnCode ret = PhidgetDCMotor_create(&motor_handle_);
+  PhidgetReturnCode ret = PhidgetDCMotor_create(&handle_);
   if (ret != EPHIDGET_OK)
   {
     throw Phidget22Error("Failed to create Motor handle for channel " + std::to_string(channel_address.channel), ret);
   }
 
-  openWaitForAttachment(reinterpret_cast<PhidgetHandle>(motor_handle_), getChannelAddress());
+  openWaitForAttachment(reinterpret_cast<PhidgetHandle>(handle_), getChannelAddress());
 
-  ret = PhidgetDCMotor_setOnVelocityUpdateHandler(motor_handle_, DutyCycleChangeHandler, this);
+  ret = PhidgetDCMotor_setOnVelocityUpdateHandler(handle_, DutyCycleChangeHandler, this);
   if (ret != EPHIDGET_OK)
   {
     throw Phidget22Error("Failed to set duty cycle update handler for Motor channel " +
@@ -53,15 +53,14 @@ Motor::Motor(const ChannelAddress& channel_address, std::function<void()> duty_c
                          ret);
   }
 
-  back_emf_sensing_supported_ = true;
-  ret = PhidgetDCMotor_setBackEMFSensingState(motor_handle_, 1);
+  ret = PhidgetDCMotor_setBackEMFSensingState(handle_, 1);
   if (ret == EPHIDGET_UNSUPPORTED)
   {
     back_emf_sensing_supported_ = false;
   }
   else if (ret == EPHIDGET_OK)
   {
-    ret = PhidgetDCMotor_setOnBackEMFChangeHandler(motor_handle_, BackEMFChangeHandler, this);
+    ret = PhidgetDCMotor_setOnBackEMFChangeHandler(handle_, BackEMFChangeHandler, this);
     if (ret != EPHIDGET_OK)
     {
       throw Phidget22Error("Failed to set back EMF update handler for Motor channel " +
@@ -78,23 +77,19 @@ Motor::Motor(const ChannelAddress& channel_address, std::function<void()> duty_c
 
 Motor::~Motor()
 {
-  close(reinterpret_cast<PhidgetHandle>(motor_handle_));
-  PhidgetDCMotor_delete(&motor_handle_);
+  close(reinterpret_cast<PhidgetHandle>(handle_));
+  PhidgetDCMotor_delete(&handle_);
 }
 
 double Motor::getDutyCycle()
 {
-  double duty_cycle;
-  {
-    std::lock_guard<std::mutex> lock(motor_mutex_);
-    duty_cycle = duty_cycle_;
-  }
-  return duty_cycle;
+  std::lock_guard<std::mutex> lock(mutex_);
+  return duty_cycle_;
 }
 
 void Motor::setDutyCycle(double duty_cycle) const
 {
-  PhidgetReturnCode ret = PhidgetDCMotor_setTargetVelocity(motor_handle_, duty_cycle);
+  PhidgetReturnCode ret = PhidgetDCMotor_setTargetVelocity(handle_, duty_cycle);
   if (ret != EPHIDGET_OK)
   {
     throw Phidget22Error("Failed to set duty cycle for Motor channel " + std::to_string(getChannelAddress().channel),
@@ -105,7 +100,7 @@ void Motor::setDutyCycle(double duty_cycle) const
 double Motor::getAcceleration() const
 {
   double accel;
-  PhidgetReturnCode ret = PhidgetDCMotor_getAcceleration(motor_handle_, &accel);
+  PhidgetReturnCode ret = PhidgetDCMotor_getAcceleration(handle_, &accel);
   if (ret != EPHIDGET_OK)
   {
     throw Phidget22Error("Failed to get acceleration for Motor channel " + std::to_string(getChannelAddress().channel),
@@ -116,7 +111,7 @@ double Motor::getAcceleration() const
 
 void Motor::setAcceleration(double acceleration) const
 {
-  PhidgetReturnCode ret = PhidgetDCMotor_setAcceleration(motor_handle_, acceleration);
+  PhidgetReturnCode ret = PhidgetDCMotor_setAcceleration(handle_, acceleration);
   if (ret != EPHIDGET_OK)
   {
     throw Phidget22Error("Failed to set acceleration for Motor channel " + std::to_string(getChannelAddress().channel),
@@ -135,17 +130,13 @@ double Motor::getBackEMF()
   {
     throw Phidget22Error("Back EMF sensing not supported", EPHIDGET_UNSUPPORTED);
   }
-  double back_emf;
-  {
-    std::lock_guard<std::mutex> lock(motor_mutex_);
-    back_emf = back_emf_;
-  }
-  return back_emf;
+  std::lock_guard<std::mutex> lock(mutex_);
+  return back_emf_;
 }
 
 void Motor::setDataInterval(uint32_t data_interval_ms) const
 {
-  PhidgetReturnCode ret = PhidgetDCMotor_setDataInterval(motor_handle_, data_interval_ms);
+  PhidgetReturnCode ret = PhidgetDCMotor_setDataInterval(handle_, data_interval_ms);
   if (ret != EPHIDGET_OK)
   {
     throw Phidget22Error("Failed to set data interval for Motor channel " + std::to_string(getChannelAddress().channel),
@@ -156,7 +147,7 @@ void Motor::setDataInterval(uint32_t data_interval_ms) const
 double Motor::getBraking() const
 {
   double braking;
-  PhidgetReturnCode ret = PhidgetDCMotor_getBrakingStrength(motor_handle_, &braking);
+  PhidgetReturnCode ret = PhidgetDCMotor_getBrakingStrength(handle_, &braking);
   if (ret != EPHIDGET_OK)
   {
     throw Phidget22Error(
@@ -167,7 +158,7 @@ double Motor::getBraking() const
 
 void Motor::setBraking(double braking) const
 {
-  PhidgetReturnCode ret = PhidgetDCMotor_setTargetBrakingStrength(motor_handle_, braking);
+  PhidgetReturnCode ret = PhidgetDCMotor_setTargetBrakingStrength(handle_, braking);
   if (ret != EPHIDGET_OK)
   {
     throw Phidget22Error(
@@ -178,7 +169,7 @@ void Motor::setBraking(double braking) const
 void Motor::dutyCycleChangeHandler(double duty_cycle)
 {
   {
-    std::lock_guard<std::mutex> lock(motor_mutex_);
+    std::lock_guard<std::mutex> lock(mutex_);
     duty_cycle_ = duty_cycle;
   }
   duty_cycle_change_handler_();
@@ -187,7 +178,7 @@ void Motor::dutyCycleChangeHandler(double duty_cycle)
 void Motor::backEMFChangeHandler(double back_emf)
 {
   {
-    std::lock_guard<std::mutex> lock(motor_mutex_);
+    std::lock_guard<std::mutex> lock(mutex_);
     back_emf_ = back_emf;
   }
   back_emf_change_handler_();

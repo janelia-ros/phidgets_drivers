@@ -31,6 +31,8 @@
 #define PHIDGETS_API_STEPPER_H
 
 #include <functional>
+#include <string>
+#include <mutex>
 
 #include <libphidget22/phidget22.h>
 
@@ -38,18 +40,16 @@
 
 namespace phidgets
 {
-class Stepper final
+class Stepper : public PhidgetChannel
 {
 public:
   PHIDGET22_NO_COPY_NO_MOVE_NO_ASSIGN(Stepper)
 
-  explicit Stepper(int32_t serial_number, int hub_port, bool is_hub_port_device, int channel,
-                   std::function<void(int, double)> position_change_handler,
-                   std::function<void(int, double)> velocity_change_handler, std::function<void(int)> stopped_handler);
+  explicit Stepper(const ChannelAddress& channel_address,
+                   std::function<void()> position_change_handler,
+                   std::function<void()> velocity_change_handler, std::function<void()> stopped_handler);
 
   ~Stepper();
-
-  int32_t getSerialNumber() const noexcept;
 
   double getAcceleration() const;
   void setAcceleration(double acceleration) const;
@@ -72,7 +72,7 @@ public:
   uint32_t getMaxFailsafeTime() const;
   double getHoldingCurrentLimit() const;
   void setHoldingCurrentLimit(double holding_current_limit) const;
-  double getPosition() const;
+  double getPosition();
   double getMinPosition() const;
   double getMaxPosition() const;
   void addPositionOffset(double position_offset) const;
@@ -81,23 +81,24 @@ public:
   void resetFailsafe() const;
   double getTargetPosition() const;
   void setTargetPosition(double target_position) const;
-  double getVelocity() const;
+  double getVelocity();
   double getVelocityLimit() const;
   void setVelocityLimit(double velocity_limit) const;
   double getMinVelocityLimit() const;
   double getMaxVelocityLimit() const;
 
-  void positionChangeHandler(double position) const;
-  void velocityChangeHandler(double velocity) const;
-  void stoppedHandler() const;
+  void positionChangeHandler(double position);
+  void velocityChangeHandler(double velocity);
+  void stoppedHandler();
 
 private:
-  int32_t serial_number_;
-  int channel_;
-  std::function<void(int, double)> position_change_handler_;
-  std::function<void(int, double)> velocity_change_handler_;
-  std::function<void(int)> stopped_handler_;
-  PhidgetStepperHandle stepper_handle_;
+  PhidgetStepperHandle handle_;
+  std::mutex mutex_;
+  double position_ = 0.0;
+  std::function<void()> position_change_handler_;
+  double velocity_ = 0.0;
+  std::function<void()> velocity_change_handler_;
+  std::function<void()> stopped_handler_;
 
   static void PositionChangeHandler(PhidgetStepperHandle stepper_handle, void* ctx, double position);
   static void VelocityChangeHandler(PhidgetStepperHandle stepper_handle, void* ctx, double velocity);

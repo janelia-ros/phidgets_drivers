@@ -31,90 +31,74 @@
 
 namespace phidgets
 {
-Stepper::Stepper(int32_t serial_number, int hub_port, bool is_hub_port_device, int channel,
-                 std::function<void(int, double)> position_change_handler,
-                 std::function<void(int, double)> velocity_change_handler, std::function<void(int)> stopped_handler)
-  : serial_number_(serial_number)
-  , channel_(channel)
+Stepper::Stepper(const ChannelAddress& channel_address,
+                 std::function<void()> position_change_handler,
+                 std::function<void()> velocity_change_handler, std::function<void()> stopped_handler)
+: PhidgetChannel(channel_address)
   , position_change_handler_(position_change_handler)
   , velocity_change_handler_(velocity_change_handler)
   , stopped_handler_(stopped_handler)
 {
-  PhidgetReturnCode ret = PhidgetStepper_create(&stepper_handle_);
+  PhidgetReturnCode ret = PhidgetStepper_create(&handle_);
   if (ret != EPHIDGET_OK)
   {
-    throw Phidget22Error("Failed to create Stepper handle for channel " + std::to_string(channel), ret);
+    throw Phidget22Error("Failed to create Stepper handle for channel " + std::to_string(getChannelAddress().channel), ret);
   }
 
-  helpers::openWaitForAttachment(reinterpret_cast<PhidgetHandle>(stepper_handle_), serial_number, hub_port,
-                                 is_hub_port_device, channel);
+  openWaitForAttachment(reinterpret_cast<PhidgetHandle>(handle_), getChannelAddress());
 
-  ret = PhidgetStepper_setOnPositionChangeHandler(stepper_handle_, PositionChangeHandler, this);
+  ret = PhidgetStepper_setOnPositionChangeHandler(handle_, PositionChangeHandler, this);
   if (ret != EPHIDGET_OK)
   {
-    throw Phidget22Error("Failed to set position change handler for Stepper channel " + std::to_string(channel), ret);
+    throw Phidget22Error("Failed to set position change handler for Stepper channel " + std::to_string(getChannelAddress().channel), ret);
   }
 
-  ret = PhidgetStepper_setOnVelocityChangeHandler(stepper_handle_, VelocityChangeHandler, this);
+  ret = PhidgetStepper_setOnVelocityChangeHandler(handle_, VelocityChangeHandler, this);
   if (ret != EPHIDGET_OK)
   {
-    throw Phidget22Error("Failed to set velocity change handler for Stepper channel " + std::to_string(channel), ret);
+    throw Phidget22Error("Failed to set velocity change handler for Stepper channel " + std::to_string(getChannelAddress().channel), ret);
   }
 
-  ret = PhidgetStepper_setOnStoppedHandler(stepper_handle_, StoppedHandler, this);
+  ret = PhidgetStepper_setOnStoppedHandler(handle_, StoppedHandler, this);
   if (ret != EPHIDGET_OK)
   {
-    throw Phidget22Error("Failed to set stopped handler for Stepper channel " + std::to_string(channel), ret);
-  }
-
-  if (serial_number_ == -1)
-  {
-    ret = Phidget_getDeviceSerialNumber(reinterpret_cast<PhidgetHandle>(stepper_handle_), &serial_number_);
-    if (ret != EPHIDGET_OK)
-    {
-      throw Phidget22Error("Failed to get serial number for stepper channel " + std::to_string(channel), ret);
-    }
+    throw Phidget22Error("Failed to set stopped handler for Stepper channel " + std::to_string(getChannelAddress().channel), ret);
   }
 }
 
 Stepper::~Stepper()
 {
-  PhidgetHandle handle = reinterpret_cast<PhidgetHandle>(stepper_handle_);
-  helpers::closeAndDelete(&handle);
-}
-
-int32_t Stepper::getSerialNumber() const noexcept
-{
-  return serial_number_;
+  close(reinterpret_cast<PhidgetHandle>(handle_));
+  PhidgetStepper_delete(&handle_);
 }
 
 double Stepper::getAcceleration() const
 {
   double acceleration;
-  PhidgetReturnCode ret = PhidgetStepper_getAcceleration(stepper_handle_, &acceleration);
+  PhidgetReturnCode ret = PhidgetStepper_getAcceleration(handle_, &acceleration);
   if (ret != EPHIDGET_OK)
   {
-    throw Phidget22Error("Failed to get acceleration for Stepper channel " + std::to_string(channel_), ret);
+    throw Phidget22Error("Failed to get acceleration for Stepper channel " + std::to_string(getChannelAddress().channel), ret);
   }
   return acceleration;
 }
 
 void Stepper::setAcceleration(double acceleration) const
 {
-  PhidgetReturnCode ret = PhidgetStepper_setAcceleration(stepper_handle_, acceleration);
+  PhidgetReturnCode ret = PhidgetStepper_setAcceleration(handle_, acceleration);
   if (ret != EPHIDGET_OK)
   {
-    throw Phidget22Error("Failed to set acceleration for Stepper channel " + std::to_string(channel_), ret);
+    throw Phidget22Error("Failed to set acceleration for Stepper channel " + std::to_string(getChannelAddress().channel), ret);
   }
 }
 
 double Stepper::getMinAcceleration() const
 {
   double min_acceleration;
-  PhidgetReturnCode ret = PhidgetStepper_getMinAcceleration(stepper_handle_, &min_acceleration);
+  PhidgetReturnCode ret = PhidgetStepper_getMinAcceleration(handle_, &min_acceleration);
   if (ret != EPHIDGET_OK)
   {
-    throw Phidget22Error("Failed to get min acceleration for Stepper channel " + std::to_string(channel_), ret);
+    throw Phidget22Error("Failed to get min acceleration for Stepper channel " + std::to_string(getChannelAddress().channel), ret);
   }
   return min_acceleration;
 }
@@ -122,10 +106,10 @@ double Stepper::getMinAcceleration() const
 double Stepper::getMaxAcceleration() const
 {
   double max_acceleration;
-  PhidgetReturnCode ret = PhidgetStepper_getMaxAcceleration(stepper_handle_, &max_acceleration);
+  PhidgetReturnCode ret = PhidgetStepper_getMaxAcceleration(handle_, &max_acceleration);
   if (ret != EPHIDGET_OK)
   {
-    throw Phidget22Error("Failed to get max acceleration for Stepper channel " + std::to_string(channel_), ret);
+    throw Phidget22Error("Failed to get max acceleration for Stepper channel " + std::to_string(getChannelAddress().channel), ret);
   }
   return max_acceleration;
 }
@@ -133,10 +117,10 @@ double Stepper::getMaxAcceleration() const
 bool Stepper::stepControlMode() const
 {
   PhidgetStepper_ControlMode control_mode;
-  PhidgetReturnCode ret = PhidgetStepper_getControlMode(stepper_handle_, &control_mode);
+  PhidgetReturnCode ret = PhidgetStepper_getControlMode(handle_, &control_mode);
   if (ret != EPHIDGET_OK)
   {
-    throw Phidget22Error("Failed to get control mode for Stepper channel " + std::to_string(channel_), ret);
+    throw Phidget22Error("Failed to get control mode for Stepper channel " + std::to_string(getChannelAddress().channel), ret);
   }
   return (control_mode == CONTROL_MODE_STEP);
 }
@@ -146,45 +130,45 @@ void Stepper::setStepControlMode(bool step_control_mode) const
   PhidgetReturnCode ret;
   if (step_control_mode)
   {
-    ret = PhidgetStepper_setControlMode(stepper_handle_, CONTROL_MODE_STEP);
+    ret = PhidgetStepper_setControlMode(handle_, CONTROL_MODE_STEP);
   }
   else
   {
-    ret = PhidgetStepper_setControlMode(stepper_handle_, CONTROL_MODE_RUN);
+    ret = PhidgetStepper_setControlMode(handle_, CONTROL_MODE_RUN);
   }
   if (ret != EPHIDGET_OK)
   {
-    throw Phidget22Error("Failed to set step control mode for Stepper channel " + std::to_string(channel_), ret);
+    throw Phidget22Error("Failed to set step control mode for Stepper channel " + std::to_string(getChannelAddress().channel), ret);
   }
 }
 
 double Stepper::getCurrentLimit() const
 {
   double current_limit;
-  PhidgetReturnCode ret = PhidgetStepper_getCurrentLimit(stepper_handle_, &current_limit);
+  PhidgetReturnCode ret = PhidgetStepper_getCurrentLimit(handle_, &current_limit);
   if (ret != EPHIDGET_OK)
   {
-    throw Phidget22Error("Failed to get current limit for Stepper channel " + std::to_string(channel_), ret);
+    throw Phidget22Error("Failed to get current limit for Stepper channel " + std::to_string(getChannelAddress().channel), ret);
   }
   return current_limit;
 }
 
 void Stepper::setCurrentLimit(double current_limit) const
 {
-  PhidgetReturnCode ret = PhidgetStepper_setCurrentLimit(stepper_handle_, current_limit);
+  PhidgetReturnCode ret = PhidgetStepper_setCurrentLimit(handle_, current_limit);
   if (ret != EPHIDGET_OK)
   {
-    throw Phidget22Error("Failed to set current limit for Stepper channel " + std::to_string(channel_), ret);
+    throw Phidget22Error("Failed to set current limit for Stepper channel " + std::to_string(getChannelAddress().channel), ret);
   }
 }
 
 double Stepper::getMinCurrentLimit() const
 {
   double min_current_limit;
-  PhidgetReturnCode ret = PhidgetStepper_getMinCurrentLimit(stepper_handle_, &min_current_limit);
+  PhidgetReturnCode ret = PhidgetStepper_getMinCurrentLimit(handle_, &min_current_limit);
   if (ret != EPHIDGET_OK)
   {
-    throw Phidget22Error("Failed to get min current limit for Stepper channel " + std::to_string(channel_), ret);
+    throw Phidget22Error("Failed to get min current limit for Stepper channel " + std::to_string(getChannelAddress().channel), ret);
   }
   return min_current_limit;
 }
@@ -192,10 +176,10 @@ double Stepper::getMinCurrentLimit() const
 double Stepper::getMaxCurrentLimit() const
 {
   double max_current_limit;
-  PhidgetReturnCode ret = PhidgetStepper_getMaxCurrentLimit(stepper_handle_, &max_current_limit);
+  PhidgetReturnCode ret = PhidgetStepper_getMaxCurrentLimit(handle_, &max_current_limit);
   if (ret != EPHIDGET_OK)
   {
-    throw Phidget22Error("Failed to get max current limit for Stepper channel " + std::to_string(channel_), ret);
+    throw Phidget22Error("Failed to get max current limit for Stepper channel " + std::to_string(getChannelAddress().channel), ret);
   }
   return max_current_limit;
 }
@@ -203,30 +187,30 @@ double Stepper::getMaxCurrentLimit() const
 uint32_t Stepper::getDataInterval() const
 {
   uint32_t data_interval_ms;
-  PhidgetReturnCode ret = PhidgetStepper_getDataInterval(stepper_handle_, &data_interval_ms);
+  PhidgetReturnCode ret = PhidgetStepper_getDataInterval(handle_, &data_interval_ms);
   if (ret != EPHIDGET_OK)
   {
-    throw Phidget22Error("Failed to get data interval for Stepper channel " + std::to_string(channel_), ret);
+    throw Phidget22Error("Failed to get data interval for Stepper channel " + std::to_string(getChannelAddress().channel), ret);
   }
   return data_interval_ms;
 }
 
 void Stepper::setDataInterval(uint32_t data_interval_ms) const
 {
-  PhidgetReturnCode ret = PhidgetStepper_setDataInterval(stepper_handle_, data_interval_ms);
+  PhidgetReturnCode ret = PhidgetStepper_setDataInterval(handle_, data_interval_ms);
   if (ret != EPHIDGET_OK)
   {
-    throw Phidget22Error("Failed to set data interval for Stepper channel " + std::to_string(channel_), ret);
+    throw Phidget22Error("Failed to set data interval for Stepper channel " + std::to_string(getChannelAddress().channel), ret);
   }
 }
 
 uint32_t Stepper::getMinDataInterval() const
 {
   uint32_t min_data_interval_ms;
-  PhidgetReturnCode ret = PhidgetStepper_getMinDataInterval(stepper_handle_, &min_data_interval_ms);
+  PhidgetReturnCode ret = PhidgetStepper_getMinDataInterval(handle_, &min_data_interval_ms);
   if (ret != EPHIDGET_OK)
   {
-    throw Phidget22Error("Failed to get min data interval for Stepper channel " + std::to_string(channel_), ret);
+    throw Phidget22Error("Failed to get min data interval for Stepper channel " + std::to_string(getChannelAddress().channel), ret);
   }
   return min_data_interval_ms;
 }
@@ -234,10 +218,10 @@ uint32_t Stepper::getMinDataInterval() const
 uint32_t Stepper::getMaxDataInterval() const
 {
   uint32_t max_data_interval_ms;
-  PhidgetReturnCode ret = PhidgetStepper_getMaxDataInterval(stepper_handle_, &max_data_interval_ms);
+  PhidgetReturnCode ret = PhidgetStepper_getMaxDataInterval(handle_, &max_data_interval_ms);
   if (ret != EPHIDGET_OK)
   {
-    throw Phidget22Error("Failed to get max data interval for Stepper channel " + std::to_string(channel_), ret);
+    throw Phidget22Error("Failed to get max data interval for Stepper channel " + std::to_string(getChannelAddress().channel), ret);
   }
   return max_data_interval_ms;
 }
@@ -245,39 +229,39 @@ uint32_t Stepper::getMaxDataInterval() const
 bool Stepper::getEngaged() const
 {
   int engaged;
-  PhidgetReturnCode ret = PhidgetStepper_getEngaged(stepper_handle_, &engaged);
+  PhidgetReturnCode ret = PhidgetStepper_getEngaged(handle_, &engaged);
   if (ret != EPHIDGET_OK)
   {
-    throw Phidget22Error("Failed to get engaged for Stepper channel " + std::to_string(channel_), ret);
+    throw Phidget22Error("Failed to get engaged for Stepper channel " + std::to_string(getChannelAddress().channel), ret);
   }
   return engaged;
 }
 
 void Stepper::setEngaged(bool engaged) const
 {
-  PhidgetReturnCode ret = PhidgetStepper_setEngaged(stepper_handle_, (int)engaged);
+  PhidgetReturnCode ret = PhidgetStepper_setEngaged(handle_, (int)engaged);
   if (ret != EPHIDGET_OK)
   {
-    throw Phidget22Error("Failed to set engaged for Stepper channel " + std::to_string(channel_), ret);
+    throw Phidget22Error("Failed to set engaged for Stepper channel " + std::to_string(getChannelAddress().channel), ret);
   }
 }
 
 void Stepper::enableFailsafe(uint32_t failsafe_time_ms) const
 {
-  PhidgetReturnCode ret = PhidgetStepper_enableFailsafe(stepper_handle_, failsafe_time_ms);
+  PhidgetReturnCode ret = PhidgetStepper_enableFailsafe(handle_, failsafe_time_ms);
   if (ret != EPHIDGET_OK)
   {
-    throw Phidget22Error("Failed to enable failsafe for Stepper channel " + std::to_string(channel_), ret);
+    throw Phidget22Error("Failed to enable failsafe for Stepper channel " + std::to_string(getChannelAddress().channel), ret);
   }
 }
 
 uint32_t Stepper::getMinFailsafeTime() const
 {
   uint32_t min_failsafe_time_ms;
-  PhidgetReturnCode ret = PhidgetStepper_getMinFailsafeTime(stepper_handle_, &min_failsafe_time_ms);
+  PhidgetReturnCode ret = PhidgetStepper_getMinFailsafeTime(handle_, &min_failsafe_time_ms);
   if (ret != EPHIDGET_OK)
   {
-    throw Phidget22Error("Failed to get min failsafe time for Stepper channel " + std::to_string(channel_), ret);
+    throw Phidget22Error("Failed to get min failsafe time for Stepper channel " + std::to_string(getChannelAddress().channel), ret);
   }
   return min_failsafe_time_ms;
 }
@@ -285,10 +269,10 @@ uint32_t Stepper::getMinFailsafeTime() const
 uint32_t Stepper::getMaxFailsafeTime() const
 {
   uint32_t max_failsafe_time_ms;
-  PhidgetReturnCode ret = PhidgetStepper_getMaxFailsafeTime(stepper_handle_, &max_failsafe_time_ms);
+  PhidgetReturnCode ret = PhidgetStepper_getMaxFailsafeTime(handle_, &max_failsafe_time_ms);
   if (ret != EPHIDGET_OK)
   {
-    throw Phidget22Error("Failed to get max failsafe time for Stepper channel " + std::to_string(channel_), ret);
+    throw Phidget22Error("Failed to get max failsafe time for Stepper channel " + std::to_string(getChannelAddress().channel), ret);
   }
   return max_failsafe_time_ms;
 }
@@ -296,41 +280,36 @@ uint32_t Stepper::getMaxFailsafeTime() const
 double Stepper::getHoldingCurrentLimit() const
 {
   double holding_current_limit;
-  PhidgetReturnCode ret = PhidgetStepper_getHoldingCurrentLimit(stepper_handle_, &holding_current_limit);
+  PhidgetReturnCode ret = PhidgetStepper_getHoldingCurrentLimit(handle_, &holding_current_limit);
   if (ret != EPHIDGET_OK)
   {
-    throw Phidget22Error("Failed to get holding current limit for Stepper channel " + std::to_string(channel_), ret);
+    throw Phidget22Error("Failed to get holding current limit for Stepper channel " + std::to_string(getChannelAddress().channel), ret);
   }
   return holding_current_limit;
 }
 
 void Stepper::setHoldingCurrentLimit(double holding_current_limit) const
 {
-  PhidgetReturnCode ret = PhidgetStepper_setHoldingCurrentLimit(stepper_handle_, holding_current_limit);
+  PhidgetReturnCode ret = PhidgetStepper_setHoldingCurrentLimit(handle_, holding_current_limit);
   if (ret != EPHIDGET_OK)
   {
-    throw Phidget22Error("Failed to set holding current limit for Stepper channel " + std::to_string(channel_), ret);
+    throw Phidget22Error("Failed to set holding current limit for Stepper channel " + std::to_string(getChannelAddress().channel), ret);
   }
 }
 
-double Stepper::getPosition() const
+double Stepper::getPosition()
 {
-  double position;
-  PhidgetReturnCode ret = PhidgetStepper_getPosition(stepper_handle_, &position);
-  if (ret != EPHIDGET_OK)
-  {
-    throw Phidget22Error("Failed to get position for Stepper channel " + std::to_string(channel_), ret);
-  }
-  return position;
+  std::lock_guard<std::mutex> lock(mutex_);
+  return position_;
 }
 
 double Stepper::getMinPosition() const
 {
   double min_position;
-  PhidgetReturnCode ret = PhidgetStepper_getMinPosition(stepper_handle_, &min_position);
+  PhidgetReturnCode ret = PhidgetStepper_getMinPosition(handle_, &min_position);
   if (ret != EPHIDGET_OK)
   {
-    throw Phidget22Error("Failed to get min position for Stepper channel " + std::to_string(channel_), ret);
+    throw Phidget22Error("Failed to get min position for Stepper channel " + std::to_string(getChannelAddress().channel), ret);
   }
   return min_position;
 }
@@ -338,110 +317,105 @@ double Stepper::getMinPosition() const
 double Stepper::getMaxPosition() const
 {
   double max_position;
-  PhidgetReturnCode ret = PhidgetStepper_getMaxPosition(stepper_handle_, &max_position);
+  PhidgetReturnCode ret = PhidgetStepper_getMaxPosition(handle_, &max_position);
   if (ret != EPHIDGET_OK)
   {
-    throw Phidget22Error("Failed to get max position for Stepper channel " + std::to_string(channel_), ret);
+    throw Phidget22Error("Failed to get max position for Stepper channel " + std::to_string(getChannelAddress().channel), ret);
   }
   return max_position;
 }
 
 void Stepper::addPositionOffset(double position_offset) const
 {
-  PhidgetReturnCode ret = PhidgetStepper_addPositionOffset(stepper_handle_, position_offset);
+  PhidgetReturnCode ret = PhidgetStepper_addPositionOffset(handle_, position_offset);
   if (ret != EPHIDGET_OK)
   {
-    throw Phidget22Error("Failed to add position offset for Stepper channel " + std::to_string(channel_), ret);
+    throw Phidget22Error("Failed to add position offset for Stepper channel " + std::to_string(getChannelAddress().channel), ret);
   }
 }
 
 double Stepper::getRescaleFactor() const
 {
   double rescale_factor;
-  PhidgetReturnCode ret = PhidgetStepper_getRescaleFactor(stepper_handle_, &rescale_factor);
+  PhidgetReturnCode ret = PhidgetStepper_getRescaleFactor(handle_, &rescale_factor);
   if (ret != EPHIDGET_OK)
   {
-    throw Phidget22Error("Failed to get rescale factor for Stepper channel " + std::to_string(channel_), ret);
+    throw Phidget22Error("Failed to get rescale factor for Stepper channel " + std::to_string(getChannelAddress().channel), ret);
   }
   return rescale_factor;
 }
 
 void Stepper::setRescaleFactor(double rescale_factor) const
 {
-  PhidgetReturnCode ret = PhidgetStepper_setRescaleFactor(stepper_handle_, rescale_factor);
+  PhidgetReturnCode ret = PhidgetStepper_setRescaleFactor(handle_, rescale_factor);
   if (ret != EPHIDGET_OK)
   {
-    throw Phidget22Error("Failed to set rescale factor for Stepper channel " + std::to_string(channel_), ret);
+    throw Phidget22Error("Failed to set rescale factor for Stepper channel " + std::to_string(getChannelAddress().channel), ret);
   }
 }
 
 void Stepper::resetFailsafe() const
 {
-  PhidgetReturnCode ret = PhidgetStepper_resetFailsafe(stepper_handle_);
+  PhidgetReturnCode ret = PhidgetStepper_resetFailsafe(handle_);
   if (ret != EPHIDGET_OK)
   {
-    throw Phidget22Error("Failed to reset failsafe for Stepper channel " + std::to_string(channel_), ret);
+    throw Phidget22Error("Failed to reset failsafe for Stepper channel " + std::to_string(getChannelAddress().channel), ret);
   }
 }
 
 double Stepper::getTargetPosition() const
 {
   double target_position;
-  PhidgetReturnCode ret = PhidgetStepper_getTargetPosition(stepper_handle_, &target_position);
+  PhidgetReturnCode ret = PhidgetStepper_getTargetPosition(handle_, &target_position);
   if (ret != EPHIDGET_OK)
   {
-    throw Phidget22Error("Failed to get target position for Stepper channel " + std::to_string(channel_), ret);
+    throw Phidget22Error("Failed to get target position for Stepper channel " + std::to_string(getChannelAddress().channel), ret);
   }
   return target_position;
 }
 
 void Stepper::setTargetPosition(double target_position) const
 {
-  PhidgetReturnCode ret = PhidgetStepper_setTargetPosition(stepper_handle_, target_position);
+  PhidgetReturnCode ret = PhidgetStepper_setTargetPosition(handle_, target_position);
   if (ret != EPHIDGET_OK)
   {
-    throw Phidget22Error("Failed to set target position for Stepper channel " + std::to_string(channel_), ret);
+    throw Phidget22Error("Failed to set target position for Stepper channel " + std::to_string(getChannelAddress().channel), ret);
   }
 }
 
-double Stepper::getVelocity() const
+double Stepper::getVelocity()
 {
-  double velocity;
-  PhidgetReturnCode ret = PhidgetStepper_getVelocity(stepper_handle_, &velocity);
-  if (ret != EPHIDGET_OK)
-  {
-    throw Phidget22Error("Failed to get velocity for Stepper channel " + std::to_string(channel_), ret);
-  }
-  return velocity;
+  std::lock_guard<std::mutex> lock(mutex_);
+  return velocity_;
 }
 
 double Stepper::getVelocityLimit() const
 {
   double velocity_limit;
-  PhidgetReturnCode ret = PhidgetStepper_getVelocityLimit(stepper_handle_, &velocity_limit);
+  PhidgetReturnCode ret = PhidgetStepper_getVelocityLimit(handle_, &velocity_limit);
   if (ret != EPHIDGET_OK)
   {
-    throw Phidget22Error("Failed to get velocity limit for Stepper channel " + std::to_string(channel_), ret);
+    throw Phidget22Error("Failed to get velocity limit for Stepper channel " + std::to_string(getChannelAddress().channel), ret);
   }
   return velocity_limit;
 }
 
 void Stepper::setVelocityLimit(double velocity_limit) const
 {
-  PhidgetReturnCode ret = PhidgetStepper_setVelocityLimit(stepper_handle_, velocity_limit);
+  PhidgetReturnCode ret = PhidgetStepper_setVelocityLimit(handle_, velocity_limit);
   if (ret != EPHIDGET_OK)
   {
-    throw Phidget22Error("Failed to set velocity limit for Stepper channel " + std::to_string(channel_), ret);
+    throw Phidget22Error("Failed to set velocity limit for Stepper channel " + std::to_string(getChannelAddress().channel), ret);
   }
 }
 
 double Stepper::getMinVelocityLimit() const
 {
   double min_velocity_limit;
-  PhidgetReturnCode ret = PhidgetStepper_getMinVelocityLimit(stepper_handle_, &min_velocity_limit);
+  PhidgetReturnCode ret = PhidgetStepper_getMinVelocityLimit(handle_, &min_velocity_limit);
   if (ret != EPHIDGET_OK)
   {
-    throw Phidget22Error("Failed to get min velocity limit for Stepper channel " + std::to_string(channel_), ret);
+    throw Phidget22Error("Failed to get min velocity limit for Stepper channel " + std::to_string(getChannelAddress().channel), ret);
   }
   return min_velocity_limit;
 }
@@ -449,27 +423,35 @@ double Stepper::getMinVelocityLimit() const
 double Stepper::getMaxVelocityLimit() const
 {
   double max_velocity_limit;
-  PhidgetReturnCode ret = PhidgetStepper_getMaxVelocityLimit(stepper_handle_, &max_velocity_limit);
+  PhidgetReturnCode ret = PhidgetStepper_getMaxVelocityLimit(handle_, &max_velocity_limit);
   if (ret != EPHIDGET_OK)
   {
-    throw Phidget22Error("Failed to get max velocity limit for Stepper channel " + std::to_string(channel_), ret);
+    throw Phidget22Error("Failed to get max velocity limit for Stepper channel " + std::to_string(getChannelAddress().channel), ret);
   }
   return max_velocity_limit;
 }
 
 void Stepper::positionChangeHandler(double position) const
 {
-  position_change_handler_(channel_, position);
+  {
+    std::lock_guard<std::mutex> lock(mutex_);
+    position_ = position;
+  }
+  position_change_handler_();
 }
 
 void Stepper::velocityChangeHandler(double velocity) const
 {
-  velocity_change_handler_(channel_, velocity);
+  {
+    std::lock_guard<std::mutex> lock(mutex_);
+    velocity_ = velocity;
+  }
+  velocity_change_handler_();
 }
 
 void Stepper::stoppedHandler() const
 {
-  stopped_handler_(channel_);
+  stopped_handler_();
 }
 
 void Stepper::PositionChangeHandler(PhidgetStepperHandle /* stepper_handle */, void* ctx, double position)

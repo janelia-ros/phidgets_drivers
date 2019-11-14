@@ -66,13 +66,13 @@ public:
   void backEMFChangeHandler(double back_emf);
 
 private:
-  PhidgetDCMotorHandle motor_handle_;
-  bool back_emf_sensing_supported_;
-  std::mutex motor_mutex_;
+  PhidgetDCMotorHandle handle_;
+  std::mutex mutex_;
   double duty_cycle_ = 0.0;
   std::function<void()> duty_cycle_change_handler_;
   double back_emf_ = 0.0;
   std::function<void()> back_emf_change_handler_;
+  bool back_emf_sensing_supported_ = true;
 
   static void DutyCycleChangeHandler(PhidgetDCMotorHandle motor_handle, void* ctx, double duty_cycle);
   static void BackEMFChangeHandler(PhidgetDCMotorHandle motor_handle, void* ctx, double back_emf);
