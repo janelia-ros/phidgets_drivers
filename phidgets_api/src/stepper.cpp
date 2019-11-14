@@ -431,7 +431,7 @@ double Stepper::getMaxVelocityLimit() const
   return max_velocity_limit;
 }
 
-void Stepper::positionChangeHandler(double position) const
+void Stepper::positionChangeHandler(double position)
 {
   {
     std::lock_guard<std::mutex> lock(mutex_);
@@ -440,7 +440,7 @@ void Stepper::positionChangeHandler(double position) const
   position_change_handler_();
 }
 
-void Stepper::velocityChangeHandler(double velocity) const
+void Stepper::velocityChangeHandler(double velocity)
 {
   {
     std::lock_guard<std::mutex> lock(mutex_);
@@ -449,7 +449,7 @@ void Stepper::velocityChangeHandler(double velocity) const
   velocity_change_handler_();
 }
 
-void Stepper::stoppedHandler() const
+void Stepper::stoppedHandler()
 {
   stopped_handler_();
 }

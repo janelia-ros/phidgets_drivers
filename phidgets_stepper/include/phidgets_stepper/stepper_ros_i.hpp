@@ -55,18 +55,23 @@
 
 namespace phidgets
 {
-class RosStepper final
+class RosStepper : public Stepper
 {
 public:
-  explicit RosStepper(Steppers* steppers, int channel, rclcpp::Node* node);
+  explicit RosStepper(rclcpp::Node* node, const ChannelAddress& channel_address);
+
+  // void positionChangeCallback(int channel, double position);
+
+  // void velocityChangeCallback(int channel, double velocity);
+
+  // void stoppedCallback(int channel);
 
 private:
+  std::mutex mutex_;
   enum
   {
     INTERFACE_NAME_LENGTH_MAX = 200
   };
-  Steppers* steppers_;
-  int channel_;
   rclcpp::Service<phidgets_msgs::srv::SetEnabled>::SharedPtr set_enabled_service_;
   rclcpp::Service<phidgets_msgs::srv::SetFloat64>::SharedPtr set_target_position_service_;
   rclcpp::Service<phidgets_msgs::srv::SetFloat64>::SharedPtr set_velocity_limit_service_;
@@ -97,27 +102,17 @@ private:
                                 std::shared_ptr<phidgets_msgs::srv::GetStepperSettingRanges::Response> res);
 };
 
-struct StepperDataToPub
-{
-  std::unique_ptr<RosStepper> stepper_interface;
-  std::string joint_name;
-  double last_position_val;
-  double last_velocity_val;
-};
-
 class StepperRosI final : public rclcpp::Node
 {
 public:
   explicit StepperRosI(const rclcpp::NodeOptions& options);
 
 private:
+  std::unordered_map<std::string, std::unique_ptr<RosStepper>> ros_steppers_;
   enum
   {
     PARAMETER_NAME_LENGTH_MAX = 200
   };
-  std::unique_ptr<Steppers> steppers_;
-  std::mutex stepper_mutex_;
-  std::vector<StepperDataToPub> stepper_data_to_pub_;
   std::string frame_id_;
 
   rclcpp::Publisher<sensor_msgs::msg::JointState>::SharedPtr stepper_pub_;
@@ -135,11 +130,6 @@ private:
 
   void kickWatchdogTimers();
 
-  void positionChangeCallback(int channel, double position);
-
-  void velocityChangeCallback(int channel, double velocity);
-
-  void stoppedCallback(int channel);
 };
 
 }  // namespace phidgets

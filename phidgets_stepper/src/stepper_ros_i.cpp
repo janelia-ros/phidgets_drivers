@@ -31,8 +31,8 @@
 
 namespace phidgets
 {
-RosStepper::RosStepper(Steppers* steppers, int channel, rclcpp::Node* node)
-  : steppers_(steppers), channel_(channel)
+RosStepper::RosStepper(rclcpp::Node* node, const ChannelAddress& channel_address)
+  : Stepper(channel_address, std::bind(&RosStepper::publishDutyCycle, this), std::bind(&RosStepper::publishBackEMF, this))
 {
   char service_name[INTERFACE_NAME_LENGTH_MAX];
 
@@ -81,6 +81,40 @@ RosStepper::RosStepper(Steppers* steppers, int channel, rclcpp::Node* node)
       service_name,
       std::bind(&RosStepper::getSettingRangesCallback, this, std::placeholders::_1, std::placeholders::_2));
 }
+
+// void StepperRosI::positionChangeCallback(int channel, double position)
+// {
+//   if (static_cast<int>(stepper_data_to_pub_.size()) > channel)
+//   {
+//     std::lock_guard<std::mutex> lock(stepper_mutex_);
+//     stepper_data_to_pub_[channel].last_position_val = position;
+
+//     if (publish_rate_ <= 0.0)
+//     {
+//       publishLatestJointStates();
+//     }
+//   }
+// }
+
+// void StepperRosI::velocityChangeCallback(int channel, double velocity)
+// {
+//   if (static_cast<int>(stepper_data_to_pub_.size()) > channel)
+//   {
+//     std::lock_guard<std::mutex> lock(stepper_mutex_);
+//     stepper_data_to_pub_[channel].last_velocity_val = velocity;
+
+//     if (publish_rate_ <= 0.0)
+//     {
+//       publishLatestJointStates();
+//     }
+//   }
+// }
+
+// void StepperRosI::stoppedCallback(int channel)
+// {
+//   (void)channel;  // remove unused parameter warning
+//   RCLCPP_INFO(get_logger(), "Stopped!");
+// }
 
 void RosStepper::setEnabledCallback(const std::shared_ptr<phidgets_msgs::srv::SetEnabled::Request> req,
                                           std::shared_ptr<phidgets_msgs::srv::SetEnabled::Response> res)
@@ -385,40 +419,6 @@ void StepperRosI::kickWatchdogTimers()
   {
     steppers_->resetFailsafe(channel);
   }
-}
-
-void StepperRosI::positionChangeCallback(int channel, double position)
-{
-  if (static_cast<int>(stepper_data_to_pub_.size()) > channel)
-  {
-    std::lock_guard<std::mutex> lock(stepper_mutex_);
-    stepper_data_to_pub_[channel].last_position_val = position;
-
-    if (publish_rate_ <= 0.0)
-    {
-      publishLatestJointStates();
-    }
-  }
-}
-
-void StepperRosI::velocityChangeCallback(int channel, double velocity)
-{
-  if (static_cast<int>(stepper_data_to_pub_.size()) > channel)
-  {
-    std::lock_guard<std::mutex> lock(stepper_mutex_);
-    stepper_data_to_pub_[channel].last_velocity_val = velocity;
-
-    if (publish_rate_ <= 0.0)
-    {
-      publishLatestJointStates();
-    }
-  }
-}
-
-void StepperRosI::stoppedCallback(int channel)
-{
-  (void)channel;  // remove unused parameter warning
-  RCLCPP_INFO(get_logger(), "Stopped!");
 }
 
 }  // namespace phidgets

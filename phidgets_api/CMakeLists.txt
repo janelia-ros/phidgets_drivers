@@ -30,7 +30,8 @@ include_directories(include)
 #                          src/stepper.cpp
 #                          src/temperature.cpp)
 add_library(phidgets_api src/motor.cpp
-                         src/phidget22.cpp)
+                         src/phidget22.cpp
+                         src/stepper.cpp)
 
 ament_target_dependencies(phidgets_api
   libphidget22
