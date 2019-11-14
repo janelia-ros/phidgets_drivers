@@ -35,7 +35,7 @@ RosMotor::RosMotor(rclcpp::Node* node, const ChannelAddress& channel_address)
   : Motor(channel_address, std::bind(&RosMotor::publishDutyCycle, this), std::bind(&RosMotor::publishBackEMF, this))
 
 {
-  std::lock_guard<std::mutex> lock(ros_motor_mutex_);
+  std::lock_guard<std::mutex> lock(mutex_);
 
   char interface_name[INTERFACE_NAME_LENGTH_MAX];
 
@@ -52,7 +52,7 @@ RosMotor::RosMotor(rclcpp::Node* node, const ChannelAddress& channel_address)
 
 void RosMotor::publishDutyCycle()
 {
-  std::lock_guard<std::mutex> lock(ros_motor_mutex_);
+  std::lock_guard<std::mutex> lock(mutex_);
   auto msg = std_msgs::msg::Float64();
   msg.data = getDutyCycle();
   duty_cycle_publisher_->publish(msg);
@@ -60,7 +60,7 @@ void RosMotor::publishDutyCycle()
 
 void RosMotor::publishBackEMF()
 {
-  std::lock_guard<std::mutex> lock(ros_motor_mutex_);
+  std::lock_guard<std::mutex> lock(mutex_);
   if (backEMFSensingSupported())
   {
     auto msg = std_msgs::msg::Float64();

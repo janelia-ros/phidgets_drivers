@@ -41,6 +41,7 @@
 
 #include <rclcpp/rclcpp.hpp>
 #include <rclcpp_components/register_node_macro.hpp>
+
 #include <std_msgs/msg/float64.hpp>
 
 #include "phidgets_api/motor.hpp"
@@ -56,7 +57,7 @@ public:
   void publishBackEMF();
 
 private:
-  std::mutex ros_motor_mutex_;
+  std::mutex mutex_;
   enum
   {
     INTERFACE_NAME_LENGTH_MAX = 200

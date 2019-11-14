@@ -35,7 +35,12 @@
 #include <string>
 #include <vector>
 
+#include <chrono>
+#include <functional>
+#include <stdexcept>
+
 #include <rclcpp/rclcpp.hpp>
+#include <rclcpp_components/register_node_macro.hpp>
 
 #include <sensor_msgs/msg/joint_state.hpp>
 
@@ -50,10 +55,10 @@
 
 namespace phidgets
 {
-class StepperInterface final
+class RosStepper final
 {
 public:
-  explicit StepperInterface(Steppers* steppers, int channel, rclcpp::Node* node);
+  explicit RosStepper(Steppers* steppers, int channel, rclcpp::Node* node);
 
 private:
   enum
@@ -94,7 +99,7 @@ private:
 
 struct StepperDataToPub
 {
-  std::unique_ptr<StepperInterface> stepper_interface;
+  std::unique_ptr<RosStepper> stepper_interface;
   std::string joint_name;
   double last_position_val;
   double last_velocity_val;
