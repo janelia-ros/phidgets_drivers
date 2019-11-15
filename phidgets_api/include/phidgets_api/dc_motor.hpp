@@ -45,7 +45,7 @@ class DCMotor : public PhidgetChannel
 public:
   PHIDGET22_NO_COPY_NO_MOVE_NO_ASSIGN(DCMotor)
 
-  explicit DCMotor(const ChannelAddress& channel_address, std::function<void()> velocity_change_handler,
+  explicit DCMotor(const ChannelAddress& channel_address, std::function<void()> velocity_update_handler,
                  std::function<void()> back_emf_change_handler);
 
   ~DCMotor();
@@ -61,7 +61,7 @@ public:
   double getBraking() const;
   void setBraking(double braking) const;
 
-  void velocityChangeHandler(double velocity);
+  void velocityUpdateHandler(double velocity);
 
   void backEMFChangeHandler(double back_emf);
 
@@ -69,13 +69,13 @@ private:
   PhidgetDCMotorHandle handle_;
   std::mutex mutex_;
   double velocity_ = 0.0;
-  std::function<void()> velocity_change_handler_;
+  std::function<void()> velocity_update_handler_;
   double back_emf_ = 0.0;
   std::function<void()> back_emf_change_handler_;
   bool back_emf_sensing_supported_ = true;
 
-  static void VelocityChangeHandler(PhidgetDCMotorHandle motor_handle, void* ctx, double velocity);
-  static void BackEMFChangeHandler(PhidgetDCMotorHandle motor_handle, void* ctx, double back_emf);
+  static void VelocityUpdateHandler(PhidgetDCMotorHandle dc_motor_handle, void* ctx, double velocity);
+  static void BackEMFChangeHandler(PhidgetDCMotorHandle dc_motor_handle, void* ctx, double back_emf);
 };
 
 }  // namespace phidgets

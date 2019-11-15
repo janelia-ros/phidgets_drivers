@@ -115,7 +115,7 @@ private:
   };
   std::string frame_id_;
 
-  rclcpp::Publisher<sensor_msgs::msg::JointState>::SharedPtr stepper_pub_;
+  rclcpp::Publisher<sensor_msgs::msg::JointState>::SharedPtr joint_state_pub_;
 
   rclcpp::TimerBase::SharedPtr publish_timer_;
   double publish_rate_;
@@ -124,7 +124,7 @@ private:
 
   void publishTimerCallback();
 
-  void publishLatestJointStates();
+  void publishJointStates();
 
   void watchdogTimerCallback();
 

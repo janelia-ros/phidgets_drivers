@@ -31,10 +31,10 @@
 
 namespace phidgets
 {
-DCMotor::DCMotor(const ChannelAddress& channel_address, std::function<void()> velocity_change_handler,
+DCMotor::DCMotor(const ChannelAddress& channel_address, std::function<void()> velocity_update_handler,
              std::function<void()> back_emf_change_handler)
   : PhidgetChannel(channel_address)
-  , velocity_change_handler_(velocity_change_handler)
+  , velocity_update_handler_(velocity_update_handler)
   , back_emf_change_handler_(back_emf_change_handler)
 {
   PhidgetReturnCode ret = PhidgetDCMotor_create(&handle_);
@@ -45,7 +45,7 @@ DCMotor::DCMotor(const ChannelAddress& channel_address, std::function<void()> ve
 
   openWaitForAttachment(reinterpret_cast<PhidgetHandle>(handle_), getChannelAddress());
 
-  ret = PhidgetDCMotor_setOnVelocityUpdateHandler(handle_, VelocityChangeHandler, this);
+  ret = PhidgetDCMotor_setOnVelocityUpdateHandler(handle_, VelocityUpdateHandler, this);
   if (ret != EPHIDGET_OK)
   {
     throw Phidget22Error("Failed to set duty cycle update handler for DCMotor channel " +
@@ -166,13 +166,13 @@ void DCMotor::setBraking(double braking) const
   }
 }
 
-void DCMotor::velocityChangeHandler(double velocity)
+void DCMotor::velocityUpdateHandler(double velocity)
 {
   {
     std::lock_guard<std::mutex> lock(mutex_);
     velocity_ = velocity;
   }
-  velocity_change_handler_();
+  velocity_update_handler_();
 }
 
 void DCMotor::backEMFChangeHandler(double back_emf)
@@ -184,12 +184,12 @@ void DCMotor::backEMFChangeHandler(double back_emf)
   back_emf_change_handler_();
 }
 
-void DCMotor::VelocityChangeHandler(PhidgetDCMotorHandle /* motor_handle */, void* ctx, double velocity)
+void DCMotor::VelocityUpdateHandler(PhidgetDCMotorHandle /* dc_motor_handle */, void* ctx, double velocity)
 {
-  ((DCMotor*)ctx)->velocityChangeHandler(velocity);
+  ((DCMotor*)ctx)->velocityUpdateHandler(velocity);
 }
 
-void DCMotor::BackEMFChangeHandler(PhidgetDCMotorHandle /* motor_handle */, void* ctx, double back_emf)
+void DCMotor::BackEMFChangeHandler(PhidgetDCMotorHandle /* dc_motor_handle */, void* ctx, double back_emf)
 {
   ((DCMotor*)ctx)->backEMFChangeHandler(back_emf);
 }

@@ -44,25 +44,30 @@
 
 #include <std_msgs/msg/float64.hpp>
 
+#include <sensor_msgs/msg/joint_state.hpp>
+
 #include "phidgets_api/dc_motor.hpp"
 
 namespace phidgets
 {
+class DCMotorRosI;
+
 class RosDCMotor : public DCMotor
 {
 public:
-  explicit RosDCMotor(rclcpp::Node* node, const ChannelAddress& channel_address);
+  // explicit RosDCMotor(rclcpp::Node* node, const ChannelAddress& channel_address);
+  explicit RosDCMotor(DCMotorRosI* node, const ChannelAddress& channel_address);
 
-  void publishVelocity();
-  void publishBackEMF();
+  void velocityUpdateHandler();
+  void backEMFChangeHandler();
 
 private:
-  std::mutex mutex_;
+  DCMotorRosI* node_;
+  std::mutex ros_dc_motor_mutex_;
   enum
   {
     INTERFACE_NAME_LENGTH_MAX = 200
   };
-  rclcpp::Publisher<std_msgs::msg::Float64>::SharedPtr velocity_publisher_;
   rclcpp::Publisher<std_msgs::msg::Float64>::SharedPtr back_emf_publisher_;
   rclcpp::Subscription<std_msgs::msg::Float64>::SharedPtr velocity_subscription_;
 
@@ -74,12 +79,17 @@ class DCMotorRosI final : public rclcpp::Node
 public:
   explicit DCMotorRosI(const rclcpp::NodeOptions& options);
 
+  void publishJointStatesHandler();
+
 private:
   std::unordered_map<std::string, std::unique_ptr<RosDCMotor>> ros_dc_motors_;
-
-  rclcpp::TimerBase::SharedPtr timer_;
   double publish_rate_;
 
+  rclcpp::Publisher<sensor_msgs::msg::JointState>::SharedPtr joint_state_pub_;
+  std::string frame_id_;
+  void publishJointStates();
+
+  rclcpp::TimerBase::SharedPtr timer_;
   void timerCallback();
 };
 

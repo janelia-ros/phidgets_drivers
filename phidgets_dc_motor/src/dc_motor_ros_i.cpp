@@ -31,36 +31,33 @@
 
 namespace phidgets
 {
-RosDCMotor::RosDCMotor(rclcpp::Node* node, const ChannelAddress& channel_address)
-  : DCMotor(channel_address, std::bind(&RosDCMotor::publishVelocity, this), std::bind(&RosDCMotor::publishBackEMF, this))
+// RosDCMotor::RosDCMotor(rclcpp::Node* node, const ChannelAddress& channel_address)
+RosDCMotor::RosDCMotor(DCMotorRosI* node, const ChannelAddress& channel_address)
+: DCMotor(channel_address, std::bind(&RosDCMotor::velocityUpdateHandler, this), std::bind(&RosDCMotor::backEMFChangeHandler, this))
 
 {
-  std::lock_guard<std::mutex> lock(mutex_);
+  std::lock_guard<std::mutex> lock(ros_dc_motor_mutex_);
+
+  node_ = node;
 
   char interface_name[INTERFACE_NAME_LENGTH_MAX];
 
-  snprintf(interface_name, INTERFACE_NAME_LENGTH_MAX, "motor_velocity");
-  velocity_publisher_ = node->create_publisher<std_msgs::msg::Float64>(interface_name, 1);
-
   snprintf(interface_name, INTERFACE_NAME_LENGTH_MAX, "motor_back_emf");
-  back_emf_publisher_ = node->create_publisher<std_msgs::msg::Float64>(interface_name, 1);
+  back_emf_publisher_ = node_->create_publisher<std_msgs::msg::Float64>(interface_name, 1);
 
   snprintf(interface_name, INTERFACE_NAME_LENGTH_MAX, "set_motor_velocity");
-  velocity_subscription_ = node->create_subscription<std_msgs::msg::Float64>(
+  velocity_subscription_ = node_->create_subscription<std_msgs::msg::Float64>(
       interface_name, rclcpp::QoS(1), std::bind(&RosDCMotor::velocityCallback, this, std::placeholders::_1));
 }
 
-void RosDCMotor::publishVelocity()
+void RosDCMotor::velocityUpdateHandler()
 {
-  std::lock_guard<std::mutex> lock(mutex_);
-  auto msg = std_msgs::msg::Float64();
-  msg.data = getVelocity();
-  velocity_publisher_->publish(msg);
+  node_->publishJointStatesHandler();
 }
 
-void RosDCMotor::publishBackEMF()
+void RosDCMotor::backEMFChangeHandler()
 {
-  std::lock_guard<std::mutex> lock(mutex_);
+  std::lock_guard<std::mutex> lock(ros_dc_motor_mutex_);
   if (backEMFSensingSupported())
   {
     auto msg = std_msgs::msg::Float64();
@@ -82,7 +79,7 @@ void RosDCMotor::velocityCallback(const std_msgs::msg::Float64::SharedPtr msg)
   }
 }
 
-DCMotorRosI::DCMotorRosI(const rclcpp::NodeOptions& options) : rclcpp::Node("phidgets_motor_node", options)
+DCMotorRosI::DCMotorRosI(const rclcpp::NodeOptions& options) : rclcpp::Node("phidgets_dc_motor_node", options)
 {
   setvbuf(stdout, NULL, _IONBF, BUFSIZ);
 
@@ -102,6 +99,10 @@ DCMotorRosI::DCMotorRosI(const rclcpp::NodeOptions& options) : rclcpp::Node("phi
   {
     throw std::runtime_error("Publish rate must be <= 1000");
   }
+
+  frame_id_ = this->declare_parameter("frame_id", "dc_motor");
+
+  joint_state_pub_ = this->create_publisher<sensor_msgs::msg::JointState>("joint_states", 100);
 
   RCLCPP_INFO(get_logger(), "Connecting to Phidgets DCMotor serial %d, hub port %d ...", channel_address.serial_number,
               channel_address.hub_port);
@@ -144,12 +145,35 @@ DCMotorRosI::DCMotorRosI(const rclcpp::NodeOptions& options) : rclcpp::Node("phi
   }
 }
 
-void DCMotorRosI::timerCallback()
+void DCMotorRosI::publishJointStatesHandler()
 {
+  if (publish_rate_ <= 0.0)
+  {
+    publishJointStates();
+  }
+}
+
+void DCMotorRosI::publishJointStates()
+{
+  sensor_msgs::msg::JointState msg;
+
+  msg.header.stamp = this->now();
+  msg.header.frame_id = frame_id_;
+
   for (auto& ros_motor_pair : ros_dc_motors_)
   {
-    ros_motor_pair.second->publishVelocity();
-    ros_motor_pair.second->publishBackEMF();
+    msg.name.push_back(ros_motor_pair.first);
+    msg.velocity.push_back(ros_motor_pair.second->getVelocity());
+  }
+  joint_state_pub_->publish(msg);
+}
+
+void DCMotorRosI::timerCallback()
+{
+  publishJointStates();
+  for (auto& ros_motor_pair : ros_dc_motors_)
+  {
+    ros_motor_pair.second->backEMFChangeHandler();
   }
 }
 

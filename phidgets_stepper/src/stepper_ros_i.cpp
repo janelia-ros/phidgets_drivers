@@ -91,7 +91,7 @@ RosStepper::RosStepper(rclcpp::Node* node, const ChannelAddress& channel_address
 
 //     if (publish_rate_ <= 0.0)
 //     {
-//       publishLatestJointStates();
+//       publishJointStates();
 //     }
 //   }
 // }
@@ -105,7 +105,7 @@ RosStepper::RosStepper(rclcpp::Node* node, const ChannelAddress& channel_address
 
 //     if (publish_rate_ <= 0.0)
 //     {
-//       publishLatestJointStates();
+//       publishJointStates();
 //     }
 //   }
 // }
@@ -308,6 +308,8 @@ StepperRosI::StepperRosI(const rclcpp::NodeOptions& options) : rclcpp::Node("phi
   // finished setting up.
   std::lock_guard<std::mutex> lock(stepper_mutex_);
 
+  joint_state_pub_ = this->create_publisher<sensor_msgs::msg::JointState>("joint_states", 100);
+
   int n_steppers;
   try
   {
@@ -367,8 +369,6 @@ StepperRosI::StepperRosI(const rclcpp::NodeOptions& options) : rclcpp::Node("phi
     throw;
   }
 
-  stepper_pub_ = this->create_publisher<sensor_msgs::msg::JointState>("joint_states", 100);
-
   if (publish_rate_ > 0.0)
   {
     double pub_msec = 1000.0 / publish_rate_;
@@ -381,17 +381,17 @@ StepperRosI::StepperRosI(const rclcpp::NodeOptions& options) : rclcpp::Node("phi
     // will only publish when something changes (where "changes" is defined
     // by the libphidget22 library).  In that case, make sure to publish
     // once at the beginning to make sure there is *some* data.
-    publishLatestJointStates();
+    publishJointStates();
   }
 }
 
 void StepperRosI::publishTimerCallback()
 {
   std::lock_guard<std::mutex> lock(stepper_mutex_);
-  publishLatestJointStates();
+  publishJointStates();
 }
 
-void StepperRosI::publishLatestJointStates()
+void StepperRosI::publishJointStates()
 {
   sensor_msgs::msg::JointState msg;
 
@@ -404,7 +404,7 @@ void StepperRosI::publishLatestJointStates()
     msg.position.push_back(stepper_data_to_pub_[channel].last_position_val);
     msg.velocity.push_back(stepper_data_to_pub_[channel].last_velocity_val);
   }
-  stepper_pub_->publish(msg);
+  joint_state_pub_->publish(msg);
 }
 
 void StepperRosI::watchdogTimerCallback()
