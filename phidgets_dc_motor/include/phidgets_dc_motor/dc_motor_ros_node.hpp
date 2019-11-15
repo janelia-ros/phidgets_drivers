@@ -45,49 +45,52 @@
 #include <std_msgs/msg/float64.hpp>
 
 #include <sensor_msgs/msg/joint_state.hpp>
+#include <phidgets_msgs/msg/dc_motor_state.hpp>
 
 #include "phidgets_api/dc_motor.hpp"
 
 namespace phidgets
 {
-class DCMotorRosI;
+class DcMotorRosNode;
 
-class RosDCMotor : public DCMotor
+class DcMotorRos : public DcMotor
 {
 public:
-  // explicit RosDCMotor(rclcpp::Node* node, const ChannelAddress& channel_address);
-  explicit RosDCMotor(DCMotorRosI* node, const ChannelAddress& channel_address);
+  explicit DcMotorRos(DcMotorRosNode* node, const ChannelAddress& channel_address);
 
   void velocityUpdateHandler();
-  void backEMFChangeHandler();
+  void backEmfChangeHandler();
 
 private:
-  DCMotorRosI* node_;
-  std::mutex ros_dc_motor_mutex_;
+  DcMotorRosNode* node_;
   enum
   {
     INTERFACE_NAME_LENGTH_MAX = 200
   };
-  rclcpp::Publisher<std_msgs::msg::Float64>::SharedPtr back_emf_publisher_;
   rclcpp::Subscription<std_msgs::msg::Float64>::SharedPtr velocity_subscription_;
 
   void velocityCallback(const std_msgs::msg::Float64::SharedPtr msg);
 };
 
-class DCMotorRosI final : public rclcpp::Node
+class DcMotorRosNode final : public rclcpp::Node
 {
 public:
-  explicit DCMotorRosI(const rclcpp::NodeOptions& options);
+  explicit DcMotorRosNode(const rclcpp::NodeOptions& options);
 
-  void publishJointStatesHandler();
+  void publishJointStateHandler();
+  void publishDcMotorStateHandler();
 
 private:
-  std::unordered_map<std::string, std::unique_ptr<RosDCMotor>> ros_dc_motors_;
+  std::unordered_map<std::string, std::unique_ptr<DcMotorRos>> dc_motors_;
   double publish_rate_;
 
-  rclcpp::Publisher<sensor_msgs::msg::JointState>::SharedPtr joint_state_pub_;
   std::string frame_id_;
-  void publishJointStates();
+
+  rclcpp::Publisher<sensor_msgs::msg::JointState>::SharedPtr joint_state_pub_;
+  void publishJointState();
+
+  rclcpp::Publisher<phidgets_msgs::msg::DcMotorState>::SharedPtr dc_motor_state_pub_;
+  void publishDcMotorState();
 
   rclcpp::TimerBase::SharedPtr timer_;
   void timerCallback();

@@ -20,7 +20,7 @@ find_package(sensor_msgs REQUIRED)
 
 include_directories(include)
 
-add_library(phidgets_dc_motor SHARED src/dc_motor_ros_i.cpp)
+add_library(phidgets_dc_motor SHARED src/dc_motor_ros_node.cpp)
 ament_target_dependencies(phidgets_dc_motor
   phidgets_api
   phidgets_msgs
@@ -31,7 +31,7 @@ ament_target_dependencies(phidgets_dc_motor
 )
 
 rclcpp_components_register_nodes(phidgets_dc_motor
-  "phidgets::DCMotorRosI")
+  "phidgets::DcMotorRosNode")
 
 install(TARGETS phidgets_dc_motor
   ARCHIVE DESTINATION lib

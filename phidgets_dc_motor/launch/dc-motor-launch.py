@@ -29,7 +29,7 @@ def generate_launch_description():
             composable_node_descriptions=[
                 ComposableNode(
                     package='phidgets_dc_motor',
-                    node_plugin='phidgets::DCMotorRosI',
+                    node_plugin='phidgets::DcMotorRosNode',
                     node_name='phidgets_dc_motor'),
             ],
             output='both',

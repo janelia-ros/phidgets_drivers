@@ -31,8 +31,8 @@
 
 namespace phidgets
 {
-DCMotor::DCMotor(const ChannelAddress& channel_address, std::function<void()> velocity_update_handler,
-             std::function<void()> back_emf_change_handler)
+DcMotor::DcMotor(const ChannelAddress& channel_address, std::function<void()> velocity_update_handler,
+                 std::function<void()> back_emf_change_handler)
   : PhidgetChannel(channel_address)
   , velocity_update_handler_(velocity_update_handler)
   , back_emf_change_handler_(back_emf_change_handler)
@@ -40,7 +40,7 @@ DCMotor::DCMotor(const ChannelAddress& channel_address, std::function<void()> ve
   PhidgetReturnCode ret = PhidgetDCMotor_create(&handle_);
   if (ret != EPHIDGET_OK)
   {
-    throw Phidget22Error("Failed to create DCMotor handle for channel " + std::to_string(channel_address.channel), ret);
+    throw Phidget22Error("Failed to create DcMotor handle for channel " + std::to_string(channel_address.channel), ret);
   }
 
   openWaitForAttachment(reinterpret_cast<PhidgetHandle>(handle_), getChannelAddress());
@@ -48,7 +48,7 @@ DCMotor::DCMotor(const ChannelAddress& channel_address, std::function<void()> ve
   ret = PhidgetDCMotor_setOnVelocityUpdateHandler(handle_, VelocityUpdateHandler, this);
   if (ret != EPHIDGET_OK)
   {
-    throw Phidget22Error("Failed to set duty cycle update handler for DCMotor channel " +
+    throw Phidget22Error("Failed to set duty cycle update handler for DcMotor channel " +
                              std::to_string(getChannelAddress().channel),
                          ret);
   }
@@ -60,10 +60,10 @@ DCMotor::DCMotor(const ChannelAddress& channel_address, std::function<void()> ve
   }
   else if (ret == EPHIDGET_OK)
   {
-    ret = PhidgetDCMotor_setOnBackEMFChangeHandler(handle_, BackEMFChangeHandler, this);
+    ret = PhidgetDCMotor_setOnBackEMFChangeHandler(handle_, BackEmfChangeHandler, this);
     if (ret != EPHIDGET_OK)
     {
-      throw Phidget22Error("Failed to set back EMF update handler for DCMotor channel " +
+      throw Phidget22Error("Failed to set back emf update handler for DcMotor channel " +
                                std::to_string(getChannelAddress().channel),
                            ret);
     }
@@ -71,102 +71,102 @@ DCMotor::DCMotor(const ChannelAddress& channel_address, std::function<void()> ve
   else
   {
     throw Phidget22Error(
-        "Failed to set back EMF sensing state DCMotor channel " + std::to_string(getChannelAddress().channel), ret);
+        "Failed to set back emf sensing state DcMotor channel " + std::to_string(getChannelAddress().channel), ret);
   }
 }
 
-DCMotor::~DCMotor()
+DcMotor::~DcMotor()
 {
   close(reinterpret_cast<PhidgetHandle>(handle_));
   PhidgetDCMotor_delete(&handle_);
 }
 
-double DCMotor::getVelocity()
+double DcMotor::getVelocity()
 {
   std::lock_guard<std::mutex> lock(mutex_);
   return velocity_;
 }
 
-void DCMotor::setTargetVelocity(double velocity) const
+void DcMotor::setTargetVelocity(double velocity) const
 {
   PhidgetReturnCode ret = PhidgetDCMotor_setTargetVelocity(handle_, velocity);
   if (ret != EPHIDGET_OK)
   {
-    throw Phidget22Error("Failed to set target velocity for DCMotor channel " + std::to_string(getChannelAddress().channel),
-                         ret);
+    throw Phidget22Error(
+        "Failed to set target velocity for DcMotor channel " + std::to_string(getChannelAddress().channel), ret);
   }
 }
 
-double DCMotor::getAcceleration() const
+double DcMotor::getAcceleration() const
 {
   double accel;
   PhidgetReturnCode ret = PhidgetDCMotor_getAcceleration(handle_, &accel);
   if (ret != EPHIDGET_OK)
   {
-    throw Phidget22Error("Failed to get acceleration for DCMotor channel " + std::to_string(getChannelAddress().channel),
-                         ret);
+    throw Phidget22Error(
+        "Failed to get acceleration for DcMotor channel " + std::to_string(getChannelAddress().channel), ret);
   }
   return accel;
 }
 
-void DCMotor::setAcceleration(double acceleration) const
+void DcMotor::setAcceleration(double acceleration) const
 {
   PhidgetReturnCode ret = PhidgetDCMotor_setAcceleration(handle_, acceleration);
   if (ret != EPHIDGET_OK)
   {
-    throw Phidget22Error("Failed to set acceleration for DCMotor channel " + std::to_string(getChannelAddress().channel),
-                         ret);
+    throw Phidget22Error(
+        "Failed to set acceleration for DcMotor channel " + std::to_string(getChannelAddress().channel), ret);
   }
 }
 
-bool DCMotor::backEMFSensingSupported() const
+bool DcMotor::backEmfSensingSupported() const
 {
   return back_emf_sensing_supported_;
 }
 
-double DCMotor::getBackEMF()
+double DcMotor::getBackEmf()
 {
   if (!back_emf_sensing_supported_)
   {
-    throw Phidget22Error("Back EMF sensing not supported", EPHIDGET_UNSUPPORTED);
+    throw Phidget22Error("Back emf sensing not supported", EPHIDGET_UNSUPPORTED);
   }
   std::lock_guard<std::mutex> lock(mutex_);
   return back_emf_;
 }
 
-void DCMotor::setDataInterval(uint32_t data_interval_ms) const
+void DcMotor::setDataInterval(uint32_t data_interval_ms) const
 {
   PhidgetReturnCode ret = PhidgetDCMotor_setDataInterval(handle_, data_interval_ms);
   if (ret != EPHIDGET_OK)
   {
-    throw Phidget22Error("Failed to set data interval for DCMotor channel " + std::to_string(getChannelAddress().channel),
-                         ret);
+    throw Phidget22Error(
+        "Failed to set data interval for DcMotor channel " + std::to_string(getChannelAddress().channel), ret);
   }
 }
 
-double DCMotor::getBraking() const
+double DcMotor::getBraking() const
 {
   double braking;
   PhidgetReturnCode ret = PhidgetDCMotor_getBrakingStrength(handle_, &braking);
   if (ret != EPHIDGET_OK)
   {
     throw Phidget22Error(
-        "Failed to get braking strength for DCMotor channel " + std::to_string(getChannelAddress().channel), ret);
+        "Failed to get braking strength for DcMotor channel " + std::to_string(getChannelAddress().channel), ret);
   }
   return braking;
 }
 
-void DCMotor::setBraking(double braking) const
+void DcMotor::setBraking(double braking) const
 {
   PhidgetReturnCode ret = PhidgetDCMotor_setTargetBrakingStrength(handle_, braking);
   if (ret != EPHIDGET_OK)
   {
     throw Phidget22Error(
-        "Failed to set braking strength for DCMotor channel " + std::to_string(getChannelAddress().channel), ret);
+        "Failed to set braking strength for DcMotor channel " + std::to_string(getChannelAddress().channel), ret);
   }
 }
 
-void DCMotor::velocityUpdateHandler(double velocity)
+void DcMotor::velocityUpdateHandler(double velocity)
 {
   {
     std::lock_guard<std::mutex> lock(mutex_);
@@ -175,7 +175,7 @@ void DCMotor::velocityUpdateHandler(double velocity)
   velocity_update_handler_();
 }
 
-void DCMotor::backEMFChangeHandler(double back_emf)
+void DcMotor::backEmfChangeHandler(double back_emf)
 {
   {
     std::lock_guard<std::mutex> lock(mutex_);
@@ -184,14 +184,14 @@ void DCMotor::backEMFChangeHandler(double back_emf)
   back_emf_change_handler_();
 }
 
-void DCMotor::VelocityUpdateHandler(PhidgetDCMotorHandle /* dc_motor_handle */, void* ctx, double velocity)
+void DcMotor::VelocityUpdateHandler(PhidgetDCMotorHandle /* dc_motor_handle */, void* ctx, double velocity)
 {
-  ((DCMotor*)ctx)->velocityUpdateHandler(velocity);
+  ((DcMotor*)ctx)->velocityUpdateHandler(velocity);
 }
 
-void DCMotor::BackEMFChangeHandler(PhidgetDCMotorHandle /* dc_motor_handle */, void* ctx, double back_emf)
+void DcMotor::BackEmfChangeHandler(PhidgetDCMotorHandle /* dc_motor_handle */, void* ctx, double back_emf)
 {
-  ((DCMotor*)ctx)->backEMFChangeHandler(back_emf);
+  ((DcMotor*)ctx)->backEmfChangeHandler(back_emf);
 }
 
 }  // namespace phidgets

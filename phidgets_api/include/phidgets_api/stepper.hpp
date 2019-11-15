@@ -45,8 +45,7 @@ class Stepper : public PhidgetChannel
 public:
   PHIDGET22_NO_COPY_NO_MOVE_NO_ASSIGN(Stepper)
 
-  explicit Stepper(const ChannelAddress& channel_address,
-                   std::function<void()> position_change_handler,
+  explicit Stepper(const ChannelAddress& channel_address, std::function<void()> position_change_handler,
                    std::function<void()> velocity_change_handler, std::function<void()> stopped_handler);
 
   ~Stepper();

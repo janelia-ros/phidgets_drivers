@@ -27,46 +27,35 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "phidgets_dc_motor/dc_motor_ros_i.hpp"
+#include "phidgets_dc_motor/dc_motor_ros_node.hpp"
 
 namespace phidgets
 {
-// RosDCMotor::RosDCMotor(rclcpp::Node* node, const ChannelAddress& channel_address)
-RosDCMotor::RosDCMotor(DCMotorRosI* node, const ChannelAddress& channel_address)
-: DCMotor(channel_address, std::bind(&RosDCMotor::velocityUpdateHandler, this), std::bind(&RosDCMotor::backEMFChangeHandler, this))
+DcMotorRos::DcMotorRos(DcMotorRosNode* node, const ChannelAddress& channel_address)
+  : DcMotor(channel_address, std::bind(&DcMotorRos::velocityUpdateHandler, this),
+            std::bind(&DcMotorRos::backEmfChangeHandler, this))
 
 {
-  std::lock_guard<std::mutex> lock(ros_dc_motor_mutex_);
-
   node_ = node;
 
   char interface_name[INTERFACE_NAME_LENGTH_MAX];
 
-  snprintf(interface_name, INTERFACE_NAME_LENGTH_MAX, "motor_back_emf");
-  back_emf_publisher_ = node_->create_publisher<std_msgs::msg::Float64>(interface_name, 1);
-
   snprintf(interface_name, INTERFACE_NAME_LENGTH_MAX, "set_motor_velocity");
   velocity_subscription_ = node_->create_subscription<std_msgs::msg::Float64>(
-      interface_name, rclcpp::QoS(1), std::bind(&RosDCMotor::velocityCallback, this, std::placeholders::_1));
+      interface_name, rclcpp::QoS(1), std::bind(&DcMotorRos::velocityCallback, this, std::placeholders::_1));
 }
 
-void RosDCMotor::velocityUpdateHandler()
+void DcMotorRos::velocityUpdateHandler()
 {
-  node_->publishJointStatesHandler();
+  node_->publishJointStateHandler();
 }
 
-void RosDCMotor::backEMFChangeHandler()
+void DcMotorRos::backEmfChangeHandler()
 {
-  std::lock_guard<std::mutex> lock(ros_dc_motor_mutex_);
-  if (backEMFSensingSupported())
-  {
-    auto msg = std_msgs::msg::Float64();
-    msg.data = getBackEMF();
-    back_emf_publisher_->publish(msg);
-  }
+  node_->publishDcMotorStateHandler();
 }
 
-void RosDCMotor::velocityCallback(const std_msgs::msg::Float64::SharedPtr msg)
+void DcMotorRos::velocityCallback(const std_msgs::msg::Float64::SharedPtr msg)
 {
   try
   {
@@ -79,11 +68,11 @@ void RosDCMotor::velocityCallback(const std_msgs::msg::Float64::SharedPtr msg)
   }
 }
 
-DCMotorRosI::DCMotorRosI(const rclcpp::NodeOptions& options) : rclcpp::Node("phidgets_dc_motor_node", options)
+DcMotorRosNode::DcMotorRosNode(const rclcpp::NodeOptions& options) : rclcpp::Node("phidgets_dc_motor_node", options)
 {
   setvbuf(stdout, NULL, _IONBF, BUFSIZ);
 
-  RCLCPP_INFO(get_logger(), "Starting Phidgets DCMotor");
+  RCLCPP_INFO(get_logger(), "Starting Phidgets DcMotor");
 
   ChannelAddress channel_address;
   channel_address.serial_number = this->declare_parameter("serial", -1);  // default open any device
@@ -102,9 +91,10 @@ DCMotorRosI::DCMotorRosI(const rclcpp::NodeOptions& options) : rclcpp::Node("phi
 
   frame_id_ = this->declare_parameter("frame_id", "dc_motor");
 
-  joint_state_pub_ = this->create_publisher<sensor_msgs::msg::JointState>("joint_states", 100);
+  joint_state_pub_ = this->create_publisher<sensor_msgs::msg::JointState>("joint_state", 100);
+  dc_motor_state_pub_ = this->create_publisher<phidgets_msgs::msg::DcMotorState>("dc_motor_state", 100);
 
-  RCLCPP_INFO(get_logger(), "Connecting to Phidgets DCMotor serial %d, hub port %d ...", channel_address.serial_number,
+  RCLCPP_INFO(get_logger(), "Connecting to Phidgets DcMotor serial %d, hub port %d ...", channel_address.serial_number,
               channel_address.hub_port);
 
   int n_motors;
@@ -114,18 +104,18 @@ DCMotorRosI::DCMotorRosI(const rclcpp::NodeOptions& options) : rclcpp::Node("phi
 
     for (int i = 0; i < n_motors; i++)
     {
-      std::string key = std::to_string(i);
-      ros_dc_motors_[key] = std::make_unique<RosDCMotor>(this, channel_address);
+      std::string name = std::to_string(i);
+      dc_motors_[name] = std::make_unique<DcMotorRos>(this, channel_address);
       RCLCPP_INFO(get_logger(), "Connected to serial %d, %d motor",
-                  ros_dc_motors_.at(key)->getChannelAddress().serial_number, n_motors);
+                  dc_motors_.at(name)->getChannelAddress().serial_number, n_motors);
 
-      ros_dc_motors_.at(key)->setDataInterval(data_interval_ms);
-      ros_dc_motors_.at(key)->setBraking(braking_strength);
+      dc_motors_.at(name)->setDataInterval(data_interval_ms);
+      dc_motors_.at(name)->setBraking(braking_strength);
     }
   }
   catch (const Phidget22Error& err)
   {
-    RCLCPP_ERROR(get_logger(), "DCMotor: %s", err.what());
+    RCLCPP_ERROR(get_logger(), "DcMotor: %s", err.what());
     throw;
   }
 
@@ -133,7 +123,7 @@ DCMotorRosI::DCMotorRosI(const rclcpp::NodeOptions& options) : rclcpp::Node("phi
   {
     double pub_msec = 1000.0 / publish_rate_;
     timer_ = this->create_wall_timer(std::chrono::milliseconds(static_cast<int64_t>(pub_msec)),
-                                     std::bind(&DCMotorRosI::timerCallback, this));
+                                     std::bind(&DcMotorRosNode::timerCallback, this));
   }
   else
   {
@@ -145,38 +135,65 @@ DCMotorRosI::DCMotorRosI(const rclcpp::NodeOptions& options) : rclcpp::Node("phi
   }
 }
 
-void DCMotorRosI::publishJointStatesHandler()
+void DcMotorRosNode::publishJointStateHandler()
 {
   if (publish_rate_ <= 0.0)
   {
-    publishJointStates();
+    publishJointState();
   }
 }
 
-void DCMotorRosI::publishJointStates()
+void DcMotorRosNode::publishDcMotorStateHandler()
+{
+  if (publish_rate_ <= 0.0)
+  {
+    publishDcMotorState();
+  }
+}
+
+void DcMotorRosNode::publishJointState()
 {
   sensor_msgs::msg::JointState msg;
 
   msg.header.stamp = this->now();
   msg.header.frame_id = frame_id_;
 
-  for (auto& ros_motor_pair : ros_dc_motors_)
+  for (const auto& dc_motor_pair : dc_motors_)
   {
-    msg.name.push_back(ros_motor_pair.first);
-    msg.velocity.push_back(ros_motor_pair.second->getVelocity());
+    const std::string& name = dc_motor_pair.first;
+    const std::unique_ptr<DcMotorRos>& dc_motor = dc_motor_pair.second;
+    msg.name.push_back(name);
+    msg.velocity.push_back(dc_motor->getVelocity());
   }
   joint_state_pub_->publish(msg);
 }
 
-void DCMotorRosI::timerCallback()
+void DcMotorRosNode::publishDcMotorState()
 {
-  publishJointStates();
-  for (auto& ros_motor_pair : ros_dc_motors_)
+  phidgets_msgs::msg::DcMotorState msg;
+
+  msg.header.stamp = this->now();
+  msg.header.frame_id = frame_id_;
+
+  for (const auto& dc_motor_pair : dc_motors_)
   {
-    ros_motor_pair.second->backEMFChangeHandler();
+    const std::string& name = dc_motor_pair.first;
+    const std::unique_ptr<DcMotorRos>& dc_motor = dc_motor_pair.second;
+    if (dc_motor->backEmfSensingSupported())
+    {
+      msg.name.push_back(name);
+      msg.back_emf.push_back(dc_motor->getBackEmf());
+    }
   }
+  dc_motor_state_pub_->publish(msg);
+}
+
+void DcMotorRosNode::timerCallback()
+{
+  publishJointState();
+  publishDcMotorState();
 }
 
 }  // namespace phidgets
 
-RCLCPP_COMPONENTS_REGISTER_NODE(phidgets::DCMotorRosI)
+RCLCPP_COMPONENTS_REGISTER_NODE(phidgets::DcMotorRosNode)

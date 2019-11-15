@@ -40,22 +40,22 @@
 
 namespace phidgets
 {
-class DCMotor : public PhidgetChannel
+class DcMotor : public PhidgetChannel
 {
 public:
-  PHIDGET22_NO_COPY_NO_MOVE_NO_ASSIGN(DCMotor)
+  PHIDGET22_NO_COPY_NO_MOVE_NO_ASSIGN(DcMotor)
 
-  explicit DCMotor(const ChannelAddress& channel_address, std::function<void()> velocity_update_handler,
-                 std::function<void()> back_emf_change_handler);
+  explicit DcMotor(const ChannelAddress& channel_address, std::function<void()> velocity_update_handler,
+                   std::function<void()> back_emf_change_handler);
 
-  ~DCMotor();
+  ~DcMotor();
 
   double getVelocity();
   void setTargetVelocity(double velocity) const;
   double getAcceleration() const;
   void setAcceleration(double acceleration) const;
-  bool backEMFSensingSupported() const;
-  double getBackEMF();
+  bool backEmfSensingSupported() const;
+  double getBackEmf();
   void setDataInterval(uint32_t data_interval_ms) const;
 
   double getBraking() const;
@@ -63,7 +63,7 @@ public:
 
   void velocityUpdateHandler(double velocity);
 
-  void backEMFChangeHandler(double back_emf);
+  void backEmfChangeHandler(double back_emf);
 
 private:
   PhidgetDCMotorHandle handle_;
@@ -75,7 +75,7 @@ private:
   bool back_emf_sensing_supported_ = true;
 
   static void VelocityUpdateHandler(PhidgetDCMotorHandle dc_motor_handle, void* ctx, double velocity);
-  static void BackEMFChangeHandler(PhidgetDCMotorHandle dc_motor_handle, void* ctx, double back_emf);
+  static void BackEmfChangeHandler(PhidgetDCMotorHandle dc_motor_handle, void* ctx, double back_emf);
 };
 
 }  // namespace phidgets

@@ -10,6 +10,7 @@
   <license>BSD</license>
 
   <author>Chris Lalancette</author>
+  <author>Peter Polidoro</author>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
 

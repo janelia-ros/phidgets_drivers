@@ -82,14 +82,14 @@ DigitalOutputRosI::DigitalOutputRosI(const rclcpp::NodeOptions& options)
 }
 
 void DigitalOutputRosI::setSrvCallback(const std::shared_ptr<phidgets_msgs::srv::SetDigitalOutput::Request> req,
-                                        std::shared_ptr<phidgets_msgs::srv::SetDigitalOutput::Response> res)
+                                       std::shared_ptr<phidgets_msgs::srv::SetDigitalOutput::Response> res)
 {
   dos_->setOutputtate(req->index, req->state);
   res->success = true;
 }
 
 DigitalOutputetter::DigitalOutputetter(DigitalOutput* dos, int index, DigitalOutputRosI* node,
-                                         const std::string& topicname)
+                                       const std::string& topicname)
   : dos_(dos), index_(index)
 {
   subscription_ = node->create_subscription<std_msgs::msg::Bool>(

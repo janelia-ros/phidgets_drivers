@@ -129,7 +129,6 @@ private:
   void watchdogTimerCallback();
 
   void kickWatchdogTimers();
-
 };
 
 }  // namespace phidgets
