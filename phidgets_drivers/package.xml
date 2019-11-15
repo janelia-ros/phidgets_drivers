@@ -33,7 +33,7 @@
   <!-- <exec_depend>phidgets_ik</exec_depend> -->
   <!-- <exec_depend>phidgets_high_speed_encoder</exec_depend> -->
   <!-- <exec_depend>phidgets_magnetometer</exec_depend> -->
-  <exec_depend>phidgets_motor</exec_depend>
+  <exec_depend>phidgets_dc_motor</exec_depend>
   <exec_depend>phidgets_msgs</exec_depend>
   <!-- <exec_depend>phidgets_spatial</exec_depend> -->
   <exec_depend>phidgets_stepper</exec_depend>

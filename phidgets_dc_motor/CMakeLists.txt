@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.5)
-project(phidgets_motor)
+project(phidgets_dc_motor)
 
 # Default to C++14
 if(NOT CMAKE_CXX_STANDARD)
@@ -19,8 +19,8 @@ find_package(std_msgs REQUIRED)
 
 include_directories(include)
 
-add_library(phidgets_motor SHARED src/motor_ros_i.cpp)
-ament_target_dependencies(phidgets_motor
+add_library(phidgets_dc_motor SHARED src/dc_motor_ros_i.cpp)
+ament_target_dependencies(phidgets_dc_motor
   phidgets_api
   phidgets_msgs
   rclcpp
@@ -28,10 +28,10 @@ ament_target_dependencies(phidgets_motor
   std_msgs
 )
 
-rclcpp_components_register_nodes(phidgets_motor
-  "phidgets::MotorRosI")
+rclcpp_components_register_nodes(phidgets_dc_motor
+  "phidgets::DCMotorRosI")
 
-install(TARGETS phidgets_motor
+install(TARGETS phidgets_dc_motor
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib
   RUNTIME DESTINATION bin

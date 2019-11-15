@@ -27,8 +27,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef PHIDGETS_API_MOTOR_H
-#define PHIDGETS_API_MOTOR_H
+#ifndef PHIDGETS_API_DC_MOTOR_H
+#define PHIDGETS_API_DC_MOTOR_H
 
 #include <functional>
 #include <string>
@@ -40,18 +40,18 @@
 
 namespace phidgets
 {
-class Motor : public PhidgetChannel
+class DCMotor : public PhidgetChannel
 {
 public:
-  PHIDGET22_NO_COPY_NO_MOVE_NO_ASSIGN(Motor)
+  PHIDGET22_NO_COPY_NO_MOVE_NO_ASSIGN(DCMotor)
 
-  explicit Motor(const ChannelAddress& channel_address, std::function<void()> velocity_change_handler,
+  explicit DCMotor(const ChannelAddress& channel_address, std::function<void()> velocity_change_handler,
                  std::function<void()> back_emf_change_handler);
 
-  ~Motor();
+  ~DCMotor();
 
   double getVelocity();
-  void setVelocity(double velocity) const;
+  void setTargetVelocity(double velocity) const;
   double getAcceleration() const;
   void setAcceleration(double acceleration) const;
   bool backEMFSensingSupported() const;
@@ -80,4 +80,4 @@ private:
 
 }  // namespace phidgets
 
-#endif  // PHIDGETS_API_MOTOR_H
+#endif  // PHIDGETS_API_DC_MOTOR_H

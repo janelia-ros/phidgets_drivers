@@ -27,8 +27,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef PHIDGETS_MOTOR_MOTOR_ROS_I_H
-#define PHIDGETS_MOTOR_MOTOR_ROS_I_H
+#ifndef PHIDGETS_DC_MOTOR_DC_MOTOR_ROS_I_H
+#define PHIDGETS_DC_MOTOR_DC_MOTOR_ROS_I_H
 
 #include <memory>
 #include <mutex>
@@ -44,14 +44,14 @@
 
 #include <std_msgs/msg/float64.hpp>
 
-#include "phidgets_api/motor.hpp"
+#include "phidgets_api/dc_motor.hpp"
 
 namespace phidgets
 {
-class RosMotor : public Motor
+class RosDCMotor : public DCMotor
 {
 public:
-  explicit RosMotor(rclcpp::Node* node, const ChannelAddress& channel_address);
+  explicit RosDCMotor(rclcpp::Node* node, const ChannelAddress& channel_address);
 
   void publishVelocity();
   void publishBackEMF();
@@ -69,13 +69,13 @@ private:
   void velocityCallback(const std_msgs::msg::Float64::SharedPtr msg);
 };
 
-class MotorRosI final : public rclcpp::Node
+class DCMotorRosI final : public rclcpp::Node
 {
 public:
-  explicit MotorRosI(const rclcpp::NodeOptions& options);
+  explicit DCMotorRosI(const rclcpp::NodeOptions& options);
 
 private:
-  std::unordered_map<std::string, std::unique_ptr<RosMotor>> ros_motors_;
+  std::unordered_map<std::string, std::unique_ptr<RosDCMotor>> ros_dc_motors_;
 
   rclcpp::TimerBase::SharedPtr timer_;
   double publish_rate_;
@@ -85,4 +85,4 @@ private:
 
 }  // namespace phidgets
 
-#endif  // PHIDGETS_MOTOR_MOTOR_ROS_I_H
+#endif  // PHIDGETS_DC_MOTOR_DC_MOTOR_ROS_I_H

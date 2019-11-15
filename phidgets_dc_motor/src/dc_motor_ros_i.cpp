@@ -27,12 +27,12 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "phidgets_motor/motor_ros_i.hpp"
+#include "phidgets_dc_motor/dc_motor_ros_i.hpp"
 
 namespace phidgets
 {
-RosMotor::RosMotor(rclcpp::Node* node, const ChannelAddress& channel_address)
-  : Motor(channel_address, std::bind(&RosMotor::publishVelocity, this), std::bind(&RosMotor::publishBackEMF, this))
+RosDCMotor::RosDCMotor(rclcpp::Node* node, const ChannelAddress& channel_address)
+  : DCMotor(channel_address, std::bind(&RosDCMotor::publishVelocity, this), std::bind(&RosDCMotor::publishBackEMF, this))
 
 {
   std::lock_guard<std::mutex> lock(mutex_);
@@ -47,10 +47,10 @@ RosMotor::RosMotor(rclcpp::Node* node, const ChannelAddress& channel_address)
 
   snprintf(interface_name, INTERFACE_NAME_LENGTH_MAX, "set_motor_velocity");
   velocity_subscription_ = node->create_subscription<std_msgs::msg::Float64>(
-      interface_name, rclcpp::QoS(1), std::bind(&RosMotor::velocityCallback, this, std::placeholders::_1));
+      interface_name, rclcpp::QoS(1), std::bind(&RosDCMotor::velocityCallback, this, std::placeholders::_1));
 }
 
-void RosMotor::publishVelocity()
+void RosDCMotor::publishVelocity()
 {
   std::lock_guard<std::mutex> lock(mutex_);
   auto msg = std_msgs::msg::Float64();
@@ -58,7 +58,7 @@ void RosMotor::publishVelocity()
   velocity_publisher_->publish(msg);
 }
 
-void RosMotor::publishBackEMF()
+void RosDCMotor::publishBackEMF()
 {
   std::lock_guard<std::mutex> lock(mutex_);
   if (backEMFSensingSupported())
@@ -69,11 +69,11 @@ void RosMotor::publishBackEMF()
   }
 }
 
-void RosMotor::velocityCallback(const std_msgs::msg::Float64::SharedPtr msg)
+void RosDCMotor::velocityCallback(const std_msgs::msg::Float64::SharedPtr msg)
 {
   try
   {
-    setVelocity(msg->data);
+    setTargetVelocity(msg->data);
   }
   catch (const phidgets::Phidget22Error& err)
   {
@@ -82,11 +82,11 @@ void RosMotor::velocityCallback(const std_msgs::msg::Float64::SharedPtr msg)
   }
 }
 
-MotorRosI::MotorRosI(const rclcpp::NodeOptions& options) : rclcpp::Node("phidgets_motor_node", options)
+DCMotorRosI::DCMotorRosI(const rclcpp::NodeOptions& options) : rclcpp::Node("phidgets_motor_node", options)
 {
   setvbuf(stdout, NULL, _IONBF, BUFSIZ);
 
-  RCLCPP_INFO(get_logger(), "Starting Phidgets Motor");
+  RCLCPP_INFO(get_logger(), "Starting Phidgets DCMotor");
 
   ChannelAddress channel_address;
   channel_address.serial_number = this->declare_parameter("serial", -1);  // default open any device
@@ -103,7 +103,7 @@ MotorRosI::MotorRosI(const rclcpp::NodeOptions& options) : rclcpp::Node("phidget
     throw std::runtime_error("Publish rate must be <= 1000");
   }
 
-  RCLCPP_INFO(get_logger(), "Connecting to Phidgets Motor serial %d, hub port %d ...", channel_address.serial_number,
+  RCLCPP_INFO(get_logger(), "Connecting to Phidgets DCMotor serial %d, hub port %d ...", channel_address.serial_number,
               channel_address.hub_port);
 
   int n_motors;
@@ -114,17 +114,17 @@ MotorRosI::MotorRosI(const rclcpp::NodeOptions& options) : rclcpp::Node("phidget
     for (int i = 0; i < n_motors; i++)
     {
       std::string key = std::to_string(i);
-      ros_motors_[key] = std::make_unique<RosMotor>(this, channel_address);
+      ros_dc_motors_[key] = std::make_unique<RosDCMotor>(this, channel_address);
       RCLCPP_INFO(get_logger(), "Connected to serial %d, %d motor",
-                  ros_motors_.at(key)->getChannelAddress().serial_number, n_motors);
+                  ros_dc_motors_.at(key)->getChannelAddress().serial_number, n_motors);
 
-      ros_motors_.at(key)->setDataInterval(data_interval_ms);
-      ros_motors_.at(key)->setBraking(braking_strength);
+      ros_dc_motors_.at(key)->setDataInterval(data_interval_ms);
+      ros_dc_motors_.at(key)->setBraking(braking_strength);
     }
   }
   catch (const Phidget22Error& err)
   {
-    RCLCPP_ERROR(get_logger(), "Motor: %s", err.what());
+    RCLCPP_ERROR(get_logger(), "DCMotor: %s", err.what());
     throw;
   }
 
@@ -132,7 +132,7 @@ MotorRosI::MotorRosI(const rclcpp::NodeOptions& options) : rclcpp::Node("phidget
   {
     double pub_msec = 1000.0 / publish_rate_;
     timer_ = this->create_wall_timer(std::chrono::milliseconds(static_cast<int64_t>(pub_msec)),
-                                     std::bind(&MotorRosI::timerCallback, this));
+                                     std::bind(&DCMotorRosI::timerCallback, this));
   }
   else
   {
@@ -144,9 +144,9 @@ MotorRosI::MotorRosI(const rclcpp::NodeOptions& options) : rclcpp::Node("phidget
   }
 }
 
-void MotorRosI::timerCallback()
+void DCMotorRosI::timerCallback()
 {
-  for (auto& ros_motor_pair : ros_motors_)
+  for (auto& ros_motor_pair : ros_dc_motors_)
   {
     ros_motor_pair.second->publishVelocity();
     ros_motor_pair.second->publishBackEMF();
@@ -155,4 +155,4 @@ void MotorRosI::timerCallback()
 
 }  // namespace phidgets
 
-RCLCPP_COMPONENTS_REGISTER_NODE(phidgets::MotorRosI)
+RCLCPP_COMPONENTS_REGISTER_NODE(phidgets::DCMotorRosI)

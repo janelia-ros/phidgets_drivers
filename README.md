@@ -29,7 +29,7 @@ Drivers for various [Phidgets](https://www.phidgets.com) devices. This package i
 
   * [`phidgets_magnetometer`](phidgets_magnetometer/README.md)
 
-  * [`phidgets_motor`](phidgets_motor/README.md)
+  * [`phidgets_dc_motor`](phidgets_dc_motor/README.md)
 
   * [`phidgets_spatial`](phidgets_spatial/README.md)
 

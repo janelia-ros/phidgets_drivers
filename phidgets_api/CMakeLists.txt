@@ -24,12 +24,12 @@ include_directories(include)
 #                          src/gyroscope.cpp
 #                          src/ir.cpp
 #                          src/magnetometer.cpp
-#                          src/motor.cpp
+#                          src/dc_motor.cpp
 #                          src/phidget22.cpp
 #                          src/spatial.cpp
 #                          src/stepper.cpp
 #                          src/temperature.cpp)
-add_library(phidgets_api src/motor.cpp
+add_library(phidgets_api src/dc_motor.cpp
                          src/phidget22.cpp
                          src/stepper.cpp)
 
