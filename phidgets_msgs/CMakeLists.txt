@@ -17,6 +17,7 @@ find_package(std_msgs REQUIRED)
 set(msg_files
   "msg/DcMotorState.msg"
   "msg/EncoderDecimatedSpeed.msg"
+  "msg/JointJog.msg"
   "msg/Range.msg"
 )
 

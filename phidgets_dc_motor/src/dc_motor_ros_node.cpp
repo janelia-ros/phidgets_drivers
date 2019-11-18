@@ -37,12 +37,6 @@ DcMotorRos::DcMotorRos(DcMotorRosNode* node, const ChannelAddress& channel_addre
 
 {
   node_ = node;
-
-  char interface_name[INTERFACE_NAME_LENGTH_MAX];
-
-  snprintf(interface_name, INTERFACE_NAME_LENGTH_MAX, "set_motor_velocity");
-  velocity_subscription_ = node_->create_subscription<std_msgs::msg::Float64>(
-      interface_name, rclcpp::QoS(1), std::bind(&DcMotorRos::velocityCallback, this, std::placeholders::_1));
 }
 
 void DcMotorRos::velocityUpdateHandler()
@@ -53,19 +47,6 @@ void DcMotorRos::velocityUpdateHandler()
 void DcMotorRos::backEmfChangeHandler()
 {
   node_->publishDcMotorStateHandler();
-}
-
-void DcMotorRos::velocityCallback(const std_msgs::msg::Float64::SharedPtr msg)
-{
-  try
-  {
-    setTargetVelocity(msg->data);
-  }
-  catch (const phidgets::Phidget22Error& err)
-  {
-    // If the data was wrong, the lower layers will throw an exception; just
-    // catch and ignore here so we don't crash the node.
-  }
 }
 
 DcMotorRosNode::DcMotorRosNode(const rclcpp::NodeOptions& options) : rclcpp::Node("phidgets_dc_motor_node", options)
@@ -93,6 +74,8 @@ DcMotorRosNode::DcMotorRosNode(const rclcpp::NodeOptions& options) : rclcpp::Nod
 
   joint_state_pub_ = this->create_publisher<sensor_msgs::msg::JointState>("joint_state", 100);
   dc_motor_state_pub_ = this->create_publisher<phidgets_msgs::msg::DcMotorState>("dc_motor_state", 100);
+  joint_jog_sub_ = this->create_subscription<phidgets_msgs::msg::JointJog>(
+      "joint_jog", rclcpp::QoS(1), std::bind(&DcMotorRosNode::jointJogCallback, this, std::placeholders::_1));
 
   RCLCPP_INFO(get_logger(), "Connecting to Phidgets DcMotor serial %d, hub port %d ...", channel_address.serial_number,
               channel_address.hub_port);
@@ -186,6 +169,31 @@ void DcMotorRosNode::publishDcMotorState()
     }
   }
   dc_motor_state_pub_->publish(msg);
+}
+
+void DcMotorRosNode::jointJogCallback(const phidgets_msgs::msg::JointJog::SharedPtr msg)
+{
+  try
+  {
+    if (msg->joint_names.size() != msg->velocities.size())
+    {
+      return;
+    }
+    for (size_t i = 0; i<msg->joint_names.size(); ++i)
+    {
+      const auto& name = msg->joint_names[i];
+      const auto& velocity = msg->velocities[i];
+      if (dc_motors_.count(name))
+      {
+        dc_motors_.at(name)->setTargetVelocity(velocity);
+      }
+    }
+  }
+  catch (const phidgets::Phidget22Error& err)
+  {
+    // If the data was wrong, the lower layers will throw an exception; just
+    // catch and ignore here so we don't crash the node.
+  }
 }
 
 void DcMotorRosNode::timerCallback()

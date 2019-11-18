@@ -10,7 +10,7 @@ Published Topics
 
 Subscribed Topics
 -----------------
-* `/set_motor_duty_cycleXX` (`std_msgs/Float64`) - Set the motor duty cycle.  One topic is created for each motor attached.
+* `/joint_jog` (`phidgets_msgs/JointJog`) - A velocity command to named dc motor joints.
 
 Parameters
 ----------
@@ -27,4 +27,5 @@ Command Line Examples
 ros2 launch phidgets_dc_motors dc-motor-launch.py
 ros2 topic echo /joint_state
 ros2 topic echo /dc_motor_state
+ros2 topic pub -1 /joint_jog phidgets_msgs/JointJog "{joint_names: [\"0\"], velocities: [0.1]}"
 ```

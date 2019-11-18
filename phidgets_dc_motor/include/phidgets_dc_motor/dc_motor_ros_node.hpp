@@ -46,6 +46,7 @@
 
 #include <sensor_msgs/msg/joint_state.hpp>
 #include <phidgets_msgs/msg/dc_motor_state.hpp>
+#include <phidgets_msgs/msg/joint_jog.hpp>
 
 #include "phidgets_api/dc_motor.hpp"
 
@@ -63,13 +64,6 @@ public:
 
 private:
   DcMotorRosNode* node_;
-  enum
-  {
-    INTERFACE_NAME_LENGTH_MAX = 200
-  };
-  rclcpp::Subscription<std_msgs::msg::Float64>::SharedPtr velocity_subscription_;
-
-  void velocityCallback(const std_msgs::msg::Float64::SharedPtr msg);
 };
 
 class DcMotorRosNode final : public rclcpp::Node
@@ -91,6 +85,9 @@ private:
 
   rclcpp::Publisher<phidgets_msgs::msg::DcMotorState>::SharedPtr dc_motor_state_pub_;
   void publishDcMotorState();
+
+  rclcpp::Subscription<phidgets_msgs::msg::JointJog>::SharedPtr joint_jog_sub_;
+  void jointJogCallback(const phidgets_msgs::msg::JointJog::SharedPtr msg);
 
   rclcpp::TimerBase::SharedPtr timer_;
   void timerCallback();
