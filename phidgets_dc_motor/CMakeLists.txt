@@ -15,7 +15,6 @@ find_package(phidgets_api REQUIRED)
 find_package(phidgets_msgs REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(rclcpp_components REQUIRED)
-find_package(std_msgs REQUIRED)
 find_package(sensor_msgs REQUIRED)
 
 include_directories(include)
@@ -26,7 +25,6 @@ ament_target_dependencies(phidgets_dc_motor
   phidgets_msgs
   rclcpp
   rclcpp_components
-  std_msgs
   sensor_msgs
 )
 

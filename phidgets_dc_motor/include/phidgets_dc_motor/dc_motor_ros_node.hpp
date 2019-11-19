@@ -42,8 +42,6 @@
 #include <rclcpp/rclcpp.hpp>
 #include <rclcpp_components/register_node_macro.hpp>
 
-#include <std_msgs/msg/float64.hpp>
-
 #include <sensor_msgs/msg/joint_state.hpp>
 #include <phidgets_msgs/msg/dc_motor_state.hpp>
 #include <phidgets_msgs/msg/joint_jog.hpp>
