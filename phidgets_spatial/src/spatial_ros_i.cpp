@@ -141,7 +141,7 @@ SpatialRosI::SpatialRosI(const rclcpp::NodeOptions& options) : rclcpp::Node("phi
     cc_T5 = this->get_parameter("cc_t5").get_value<double>();
     has_compass_params = true;
   }
-  catch (const rclcpp::exceptions::ParameterNotDeclaredException)
+  catch (const rclcpp::exceptions::ParameterNotDeclaredException&)
   {
   }
 
