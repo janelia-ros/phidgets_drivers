@@ -56,10 +56,10 @@ public:
   void stateChangeHandler(int state) const;
 
 private:
-  int32_t serial_number_{0};
-  int channel_{0};
+  int32_t serial_number_{ 0 };
+  int channel_{ 0 };
   std::function<void(int, int)> input_handler_;
-  PhidgetDigitalInputHandle di_handle_{nullptr};
+  PhidgetDigitalInputHandle di_handle_{ nullptr };
 
   static void StateChangeHandler(PhidgetDigitalInputHandle input_handle, void* ctx, int state);
 };

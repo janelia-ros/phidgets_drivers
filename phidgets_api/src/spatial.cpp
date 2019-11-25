@@ -120,7 +120,7 @@ void Spatial::dataHandler(const double acceleration[3], const double angular_rat
 void Spatial::DataHandler(PhidgetSpatialHandle /* input_handle */, void* ctx, const double acceleration[3],
                           const double angular_rate[3], const double magnetic_field[3], double timestamp)
 {
-  ((Spatial*)ctx)->dataHandler(acceleration, angular_rate, magnetic_field, timestamp);
+  (reinterpret_cast<Spatial*>(ctx))->dataHandler(acceleration, angular_rate, magnetic_field, timestamp);
 }
 
 }  // namespace phidgets

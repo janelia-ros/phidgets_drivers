@@ -60,9 +60,9 @@ public:
   void dataHandler(const double angular_rate[3], double timestamp) const;
 
 private:
-  int32_t serial_number_{0};
+  int32_t serial_number_{ 0 };
   std::function<void(const double[3], double)> data_handler_;
-  PhidgetGyroscopeHandle gyro_handle_{nullptr};
+  PhidgetGyroscopeHandle gyro_handle_{ nullptr };
 
   static void DataHandler(PhidgetGyroscopeHandle input_handle, void* ctx, const double angular_rate[3],
                           double timestamp);

@@ -133,7 +133,7 @@ void Magnetometer::dataHandler(const double magnetic_field[3], double timestamp)
 void Magnetometer::DataHandler(PhidgetMagnetometerHandle /* input_handle */, void* ctx, const double magnetic_field[3],
                                double timestamp)
 {
-  ((Magnetometer*)ctx)->dataHandler(magnetic_field, timestamp);
+  (reinterpret_cast<Magnetometer*>(ctx))->dataHandler(magnetic_field, timestamp);
 }
 
 }  // namespace phidgets

@@ -115,7 +115,7 @@ void Temperature::temperatureChangeHandler(double temperature) const
 void Temperature::TemperatureChangeHandler(PhidgetTemperatureSensorHandle /* temperature_handle */, void* ctx,
                                            double temperature)
 {
-  ((Temperature*)ctx)->temperatureChangeHandler(temperature);
+  (reinterpret_cast<Temperature*>(ctx))->temperatureChangeHandler(temperature);
 }
 
 }  // namespace phidgets

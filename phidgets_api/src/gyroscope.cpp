@@ -128,7 +128,7 @@ void Gyroscope::dataHandler(const double angular_rate[3], double timestamp) cons
 void Gyroscope::DataHandler(PhidgetGyroscopeHandle /* input_handle */, void* ctx, const double angular_rate[3],
                             double timestamp)
 {
-  ((Gyroscope*)ctx)->dataHandler(angular_rate, timestamp);
+  (reinterpret_cast<Gyroscope*>(ctx))->dataHandler(angular_rate, timestamp);
 }
 
 }  // namespace phidgets

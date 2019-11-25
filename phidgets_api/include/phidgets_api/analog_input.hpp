@@ -58,10 +58,10 @@ public:
   void voltageChangeHandler(double sensorValue) const;
 
 private:
-  int32_t serial_number_{0};
-  int channel_{0};
+  int32_t serial_number_{ 0 };
+  int channel_{ 0 };
   std::function<void(int, double)> input_handler_;
-  PhidgetVoltageInputHandle ai_handle_{nullptr};
+  PhidgetVoltageInputHandle ai_handle_{ nullptr };
 
   static void VoltageChangeHandler(PhidgetVoltageInputHandle input_handle, void* ctx, double sensorValue);
 };

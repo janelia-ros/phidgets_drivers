@@ -58,9 +58,9 @@ public:
   void dataHandler(const double acceleration[3], double timestamp) const;
 
 private:
-  int32_t serial_number_{0};
+  int32_t serial_number_{ 0 };
   std::function<void(const double[3], double)> data_handler_;
-  PhidgetAccelerometerHandle accel_handle_{nullptr};
+  PhidgetAccelerometerHandle accel_handle_{ nullptr };
 
   static void DataHandler(PhidgetAccelerometerHandle input_handle, void* ctx, const double acceleration[3],
                           double timestamp);

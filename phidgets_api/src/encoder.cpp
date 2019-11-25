@@ -139,7 +139,7 @@ void Encoder::positionChangeHandler(int position_change, double time, int index_
 void Encoder::PositionChangeHandler(PhidgetEncoderHandle /* phid */, void* ctx, int position_change, double time,
                                     int index_triggered)
 {
-  ((Encoder*)ctx)->positionChangeHandler(position_change, time, index_triggered);
+  (reinterpret_cast<Encoder*>(ctx))->positionChangeHandler(position_change, time, index_triggered);
 }
 
 }  // namespace phidgets

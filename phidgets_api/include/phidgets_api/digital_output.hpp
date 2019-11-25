@@ -52,8 +52,8 @@ public:
   void setOutputState(bool state) const;
 
 private:
-  int32_t serial_number_{0};
-  PhidgetDigitalOutputHandle do_handle_{nullptr};
+  int32_t serial_number_{ 0 };
+  PhidgetDigitalOutputHandle do_handle_{ nullptr };
 };
 
 }  // namespace phidgets

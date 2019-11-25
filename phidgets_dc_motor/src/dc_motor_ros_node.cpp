@@ -179,7 +179,7 @@ void DcMotorRosNode::jointJogCallback(const phidgets_msgs::msg::JointJog::Shared
     {
       return;
     }
-    for (size_t i = 0; i<msg->joint_names.size(); ++i)
+    for (size_t i = 0; i < msg->joint_names.size(); ++i)
     {
       const auto& name = msg->joint_names[i];
       const auto& velocity = msg->velocities[i];

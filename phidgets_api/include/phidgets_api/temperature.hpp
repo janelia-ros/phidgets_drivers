@@ -68,9 +68,9 @@ public:
   void temperatureChangeHandler(double temperature) const;
 
 private:
-  int32_t serial_number_{0};
+  int32_t serial_number_{ 0 };
   std::function<void(double)> temperature_handler_;
-  PhidgetTemperatureSensorHandle temperature_handle_{nullptr};
+  PhidgetTemperatureSensorHandle temperature_handle_{ nullptr };
 
   static void TemperatureChangeHandler(PhidgetTemperatureSensorHandle temperature_handle, void* ctx,
                                        double temperature);

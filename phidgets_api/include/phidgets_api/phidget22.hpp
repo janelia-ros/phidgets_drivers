@@ -59,10 +59,10 @@ private:
 
 struct ChannelAddress
 {
-  int32_t serial_number{PHIDGET_SERIALNUMBER_ANY};
-  int hub_port{PHIDGET_HUBPORT_ANY};
-  bool is_hub_port_device{false};
-  int channel{PHIDGET_CHANNEL_ANY};
+  int32_t serial_number{ PHIDGET_SERIALNUMBER_ANY };
+  int hub_port{ PHIDGET_HUBPORT_ANY };
+  bool is_hub_port_device{ false };
+  int channel{ PHIDGET_CHANNEL_ANY };
 };
 
 class PhidgetChannel

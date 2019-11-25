@@ -186,12 +186,12 @@ void DcMotor::backEmfChangeHandler(double back_emf)
 
 void DcMotor::VelocityUpdateHandler(PhidgetDCMotorHandle /* dc_motor_handle */, void* ctx, double velocity)
 {
-  ((DcMotor*)ctx)->velocityUpdateHandler(velocity);
+  (reinterpret_cast<DcMotor*>(ctx))->velocityUpdateHandler(velocity);
 }
 
 void DcMotor::BackEmfChangeHandler(PhidgetDCMotorHandle /* dc_motor_handle */, void* ctx, double back_emf)
 {
-  ((DcMotor*)ctx)->backEmfChangeHandler(back_emf);
+  (reinterpret_cast<DcMotor*>(ctx))->backEmfChangeHandler(back_emf);
 }
 
 }  // namespace phidgets

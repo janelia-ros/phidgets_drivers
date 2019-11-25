@@ -63,9 +63,9 @@ public:
                    double timestamp) const;
 
 private:
-  int32_t serial_number_{0};
+  int32_t serial_number_{ 0 };
   std::function<void(const double[3], const double[3], const double[3], double)> data_handler_;
-  PhidgetSpatialHandle spatial_handle_{nullptr};
+  PhidgetSpatialHandle spatial_handle_{ nullptr };
 
   static void DataHandler(PhidgetSpatialHandle input_handle, void* ctx, const double acceleration[3],
                           const double angular_rate[3], const double magnetic_field[3], double timestamp);

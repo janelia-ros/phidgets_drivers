@@ -494,17 +494,17 @@ void Stepper::stoppedHandler()
 
 void Stepper::PositionChangeHandler(PhidgetStepperHandle /* stepper_handle */, void* ctx, double position)
 {
-  ((Stepper*)ctx)->positionChangeHandler(position);
+  (reinterpret_cast<Stepper*>(ctx))->positionChangeHandler(position);
 }
 
 void Stepper::VelocityChangeHandler(PhidgetStepperHandle /* stepper_handle */, void* ctx, double velocity)
 {
-  ((Stepper*)ctx)->velocityChangeHandler(velocity);
+  (reinterpret_cast<Stepper*>(ctx))->velocityChangeHandler(velocity);
 }
 
 void Stepper::StoppedHandler(PhidgetStepperHandle /* stepper_handle */, void* ctx)
 {
-  ((Stepper*)ctx)->stoppedHandler();
+  (reinterpret_cast<Stepper*>(ctx))->stoppedHandler();
 }
 
 }  // namespace phidgets
