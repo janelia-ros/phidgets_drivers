@@ -270,7 +270,7 @@ void RosStepper::getSettingRangesCallback(
 
 StepperRosI::StepperRosI(const rclcpp::NodeOptions& options) : rclcpp::Node("phidgets_stepper_node", options)
 {
-  setvbuf(stdout, NULL, _IONBF, BUFSIZ);
+  setvbuf(stdout, nullptr, _IONBF, BUFSIZ);
 
   RCLCPP_INFO(get_logger(), "Starting Phidgets Stepper");
 

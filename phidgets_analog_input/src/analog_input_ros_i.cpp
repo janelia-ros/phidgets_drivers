@@ -45,7 +45,7 @@ namespace phidgets
 AnalogInputRosI::AnalogInputRosI(const rclcpp::NodeOptions& options)
   : rclcpp::Node("phidgets_analog_input_node", options)
 {
-  setvbuf(stdout, NULL, _IONBF, BUFSIZ);
+  setvbuf(stdout, nullptr, _IONBF, BUFSIZ);
 
   RCLCPP_INFO(get_logger(), "Starting Phidgets AnalogInput");
 

@@ -51,7 +51,7 @@ void DcMotorRos::backEmfChangeHandler()
 
 DcMotorRosNode::DcMotorRosNode(const rclcpp::NodeOptions& options) : rclcpp::Node("phidgets_dc_motor_node", options)
 {
-  setvbuf(stdout, NULL, _IONBF, BUFSIZ);
+  setvbuf(stdout, nullptr, _IONBF, BUFSIZ);
 
   RCLCPP_INFO(get_logger(), "Starting Phidgets DcMotor");
 
