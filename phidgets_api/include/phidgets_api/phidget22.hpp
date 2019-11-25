@@ -30,6 +30,7 @@
 #ifndef PHIDGETS_API_PHIDGET22_H
 #define PHIDGETS_API_PHIDGET22_H
 
+#include <cstddef>
 #include <memory>
 #include <stdexcept>
 #include <string>

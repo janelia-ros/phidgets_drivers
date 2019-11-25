@@ -30,6 +30,7 @@
 #ifndef PHIDGETS_API_STEPPER_H
 #define PHIDGETS_API_STEPPER_H
 
+#include <cstddef>
 #include <functional>
 #include <string>
 #include <mutex>
