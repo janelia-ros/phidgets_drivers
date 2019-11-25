@@ -79,10 +79,10 @@ public:
   void positionChangeHandler(int position_change, double time, int index_triggered);
 
 private:
-  int32_t serial_number_;
-  int channel_;
+  int32_t serial_number_{0};
+  int channel_{0};
   std::function<void(int, int, double, int)> position_change_handler_;
-  PhidgetEncoderHandle encoder_handle_;
+  PhidgetEncoderHandle encoder_handle_{nullptr};
 
   static void PositionChangeHandler(PhidgetEncoderHandle phid, void* ctx, int position_change, double time_change,
                                     int index_triggered);

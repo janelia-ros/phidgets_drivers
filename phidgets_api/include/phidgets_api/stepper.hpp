@@ -91,11 +91,11 @@ public:
   void stoppedHandler();
 
 private:
-  PhidgetStepperHandle handle_;
+  PhidgetStepperHandle handle_{nullptr};
   std::mutex mutex_;
-  double position_ = 0.0;
+  double position_{0.0};
   std::function<void()> position_change_handler_;
-  double velocity_ = 0.0;
+  double velocity_{0.0};
   std::function<void()> velocity_change_handler_;
   std::function<void()> stopped_handler_;
 
