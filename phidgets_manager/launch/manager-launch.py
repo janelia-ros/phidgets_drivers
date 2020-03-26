@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Launch a Phidgets helloworld in a component container."""
+"""Launch a Phidgets manager in a component container."""
 
 import launch
 from launch_ros.actions import ComposableNodeContainer
@@ -28,9 +28,9 @@ def generate_launch_description():
             node_executable='component_container',
             composable_node_descriptions=[
                 ComposableNode(
-                    package='phidgets_helloworld',
-                    node_plugin='phidgets::HelloworldRosI',
-                    node_name='phidgets_helloworld'),
+                    package='phidgets_manager',
+                    node_plugin='phidgets::ManagerRosI',
+                    node_name='phidgets_manager'),
             ],
             output='both',
     )

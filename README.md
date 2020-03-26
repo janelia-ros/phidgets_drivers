@@ -140,4 +140,4 @@ To reformat source code:
 Docker
 ------
 
-    docker build https://github.com/janelia-ros/phidgets_drivers.git#helloworld -f Dockerfile-dashing
+    docker build https://github.com/janelia-ros/phidgets_drivers.git#manager -f Dockerfile-dashing

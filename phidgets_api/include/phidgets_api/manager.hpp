@@ -35,6 +35,8 @@
 
 #include <libphidget22/phidget22.h>
 
+#include "phidgets_api/phidget22.hpp"
+
 namespace phidgets {
 
 class Manager final
@@ -55,7 +57,6 @@ class Manager final
     std::function<void(PhidgetHandle)> attach_handler_;
     std::function<void(PhidgetHandle)> detach_handler_;
     PhidgetManagerHandle manager_handle_{nullptr};
-    bool back_emf_sensing_supported_;
 
     static void AttachHandler(PhidgetManagerHandle manager_handle, void *ctx,
                               PhidgetHandle phidget_handle);

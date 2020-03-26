@@ -27,28 +27,33 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef PHIDGETS_HELLOWORLD_HELLOWORLD_ROS_I_H
-#define PHIDGETS_HELLOWORLD_HELLOWORLD_ROS_I_H
+#ifndef PHIDGETS_MANAGER_MANAGER_ROS_I_H
+#define PHIDGETS_MANAGER_MANAGER_ROS_I_H
+
+#include <memory>
+#include <mutex>
+#include <sstream>
 
 #include <rclcpp/rclcpp.hpp>
+#include <rclcpp_components/register_node_macro.hpp>
 
-#include <functional>
-
-#include <libphidget22/phidget22.h>
+#include "phidgets_api/manager.hpp"
 
 namespace phidgets {
 
-class HelloworldRosI final : public rclcpp::Node
+class ManagerRosI final : public rclcpp::Node
 {
   public:
-    explicit HelloworldRosI(const rclcpp::NodeOptions& options);
+    explicit ManagerRosI(const rclcpp::NodeOptions& options);
 
   private:
-    std::function<void(int, double)> duty_cycle_change_handler_;
-    static void AttachHandler(PhidgetManagerHandle manager_handle, void* ctx,
-                              PhidgetHandle phidget_handle);
+    std::unique_ptr<Manager> manager_;
+    std::mutex manager_mutex_;
+
+    void attachCallback(PhidgetHandle phidget_handle);
+    void detachCallback(PhidgetHandle phidget_handle);
 };
 
 }  // namespace phidgets
 
-#endif  // PHIDGETS_HELLOWORLD_HELLOWORLD_ROS_I_H
+#endif  // PHIDGETS_MANAGER_MANAGER_ROS_I_H

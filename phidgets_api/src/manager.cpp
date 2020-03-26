@@ -27,13 +27,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <functional>
-#include <string>
-
-#include <libphidget22/phidget22.h>
-
 #include "phidgets_api/manager.hpp"
-#include "phidgets_api/phidget22.hpp"
 
 namespace phidgets {
 
@@ -41,214 +35,59 @@ Manager::Manager(std::function<void(PhidgetHandle)> attach_handler,
                  std::function<void(PhidgetHandle)> detach_handler)
     : attach_handler_(attach_handler), detach_handler_(detach_handler)
 {
-    PhidgetReturnCode ret = PhidgetDCManager_create(&manager_handle_);
+    PhidgetReturnCode ret = PhidgetManager_create(&manager_handle_);
     if (ret != EPHIDGET_OK)
     {
-        throw Phidget22Error("Failed to create Manager handle for channel " +
-                                 std::to_string(channel),
-                             ret);
+        throw Phidget22Error("Failed to create Manager handle", ret);
     }
 
-    helpers::openWaitForAttachment(
-        reinterpret_cast<PhidgetHandle>(manager_handle_), serial_number,
-        hub_port, is_hub_port_device, channel);
-
-    ret = PhidgetDCManager_setOnVelocityUpdateHandler(
-        manager_handle_, DutyCycleChangeHandler, this);
+    ret =
+        PhidgetManager_setOnAttachHandler(manager_handle_, AttachHandler, this);
     if (ret != EPHIDGET_OK)
     {
-        throw Phidget22Error(
-            "Failed to set duty cycle update handler for Manager channel " +
-                std::to_string(channel),
-            ret);
+        throw Phidget22Error("Failed to set attach handler for Manager", ret);
     }
 
-    back_emf_sensing_supported_ = true;
-    ret = PhidgetDCManager_setBackEMFSensingState(manager_handle_, 1);
-    if (ret == EPHIDGET_UNSUPPORTED)
+    ret =
+        PhidgetManager_setOnDetachHandler(manager_handle_, DetachHandler, this);
+    if (ret != EPHIDGET_OK)
     {
-        back_emf_sensing_supported_ = false;
-    } else if (ret == EPHIDGET_OK)
-    {
-        ret = PhidgetDCManager_setOnBackEMFChangeHandler(
-            manager_handle_, BackEMFChangeHandler, this);
-        if (ret != EPHIDGET_OK)
-        {
-            throw Phidget22Error(
-                "Failed to set back EMF update handler for Manager channel " +
-                    std::to_string(channel),
-                ret);
-        }
-    } else
-    {
-        throw Phidget22Error(
-            "Failed to set back EMF sensing state Manager channel " +
-                std::to_string(channel),
-            ret);
+        throw Phidget22Error("Failed to set detach handler for Manager", ret);
     }
 
-    if (serial_number_ == -1)
+    ret = PhidgetManager_open(manager_handle_);
+    if (ret != EPHIDGET_OK)
     {
-        ret = Phidget_getDeviceSerialNumber(
-            reinterpret_cast<PhidgetHandle>(manager_handle_), &serial_number_);
-        if (ret != EPHIDGET_OK)
-        {
-            throw Phidget22Error(
-                "Failed to get serial number for manager channel " +
-                    std::to_string(channel),
-                ret);
-        }
+        throw Phidget22Error("Failed to open Manager", ret);
     }
 }
 
 Manager::~Manager()
 {
-    PhidgetHandle handle = reinterpret_cast<PhidgetHandle>(manager_handle_);
-    helpers::closeAndDelete(&handle);
+    PhidgetManager_close(manager_handle_);
+    PhidgetManager_delete(&manager_handle_);
 }
 
-int32_t Manager::getSerialNumber() const noexcept
+void Manager::attachHandler(PhidgetHandle phidget_handle) const
 {
-    return serial_number_;
+    attach_handler_(phidget_handle);
 }
 
-double Manager::getDutyCycle() const
+void Manager::detachHandler(PhidgetHandle phidget_handle) const
 {
-    double duty_cycle;
-    PhidgetReturnCode ret =
-        PhidgetDCManager_getVelocity(manager_handle_, &duty_cycle);
-    if (ret != EPHIDGET_OK)
-    {
-        throw Phidget22Error("Failed to get duty cycle for Manager channel " +
-                                 std::to_string(channel_),
-                             ret);
-    }
-    return duty_cycle;
+    detach_handler_(phidget_handle);
 }
 
-void Manager::setDutyCycle(double duty_cycle) const
+void Manager::AttachHandler(PhidgetManagerHandle /* manager_handle */,
+                            void *ctx, PhidgetHandle phidget_handle)
 {
-    PhidgetReturnCode ret =
-        PhidgetDCManager_setTargetVelocity(manager_handle_, duty_cycle);
-    if (ret != EPHIDGET_OK)
-    {
-        throw Phidget22Error("Failed to set duty cycle for Manager channel " +
-                                 std::to_string(channel_),
-                             ret);
-    }
+    (reinterpret_cast<Manager *>(ctx))->attachHandler(phidget_handle);
 }
 
-double Manager::getAcceleration() const
+void Manager::DetachHandler(PhidgetManagerHandle /* manager_handle */,
+                            void *ctx, PhidgetHandle phidget_handle)
 {
-    double accel;
-    PhidgetReturnCode ret =
-        PhidgetDCManager_getAcceleration(manager_handle_, &accel);
-    if (ret != EPHIDGET_OK)
-    {
-        throw Phidget22Error("Failed to get acceleration for Manager channel " +
-                                 std::to_string(channel_),
-                             ret);
-    }
-    return accel;
-}
-
-void Manager::setAcceleration(double acceleration) const
-{
-    PhidgetReturnCode ret =
-        PhidgetDCManager_setAcceleration(manager_handle_, acceleration);
-    if (ret != EPHIDGET_OK)
-    {
-        throw Phidget22Error("Failed to set acceleration for Manager channel " +
-                                 std::to_string(channel_),
-                             ret);
-    }
-}
-
-bool Manager::backEMFSensingSupported() const
-{
-    return back_emf_sensing_supported_;
-}
-
-double Manager::getBackEMF() const
-{
-    if (!back_emf_sensing_supported_)
-    {
-        throw Phidget22Error("Back EMF sensing not supported",
-                             EPHIDGET_UNSUPPORTED);
-    }
-    double backemf;
-    PhidgetReturnCode ret =
-        PhidgetDCManager_getBackEMF(manager_handle_, &backemf);
-    if (ret != EPHIDGET_OK)
-    {
-        throw Phidget22Error("Failed to get back EMF for Manager channel " +
-                                 std::to_string(channel_),
-                             ret);
-    }
-    return backemf;
-}
-
-void Manager::setDataInterval(uint32_t data_interval_ms) const
-{
-    PhidgetReturnCode ret =
-        PhidgetDCManager_setDataInterval(manager_handle_, data_interval_ms);
-    if (ret != EPHIDGET_OK)
-    {
-        throw Phidget22Error(
-            "Failed to set data interval for Manager channel " +
-                std::to_string(channel_),
-            ret);
-    }
-}
-
-double Manager::getBraking() const
-{
-    double braking;
-    PhidgetReturnCode ret =
-        PhidgetDCManager_getBrakingStrength(manager_handle_, &braking);
-    if (ret != EPHIDGET_OK)
-    {
-        throw Phidget22Error(
-            "Failed to get braking strength for Manager channel " +
-                std::to_string(channel_),
-            ret);
-    }
-    return braking;
-}
-
-void Manager::setBraking(double braking) const
-{
-    PhidgetReturnCode ret =
-        PhidgetDCManager_setTargetBrakingStrength(manager_handle_, braking);
-    if (ret != EPHIDGET_OK)
-    {
-        throw Phidget22Error(
-            "Failed to set braking strength for Manager channel " +
-                std::to_string(channel_),
-            ret);
-    }
-}
-
-void Manager::dutyCycleChangeHandler(double duty_cycle) const
-{
-    duty_cycle_change_handler_(channel_, duty_cycle);
-}
-
-void Manager::backEMFChangeHandler(double back_emf) const
-{
-    back_emf_change_handler_(channel_, back_emf);
-}
-
-void Manager::DutyCycleChangeHandler(PhidgetManagerHandle /* manager_handle */,
-                                     void *ctx, double duty_cycle)
-{
-    (reinterpret_cast<Manager *>(ctx))->dutyCycleChangeHandler(duty_cycle);
-}
-
-void Manager::BackEMFChangeHandler(PhidgetManagerHandle /* manager_handle */,
-                                   void *ctx, double back_emf)
-{
-    (reinterpret_cast<Manager *>(ctx))->backEMFChangeHandler(back_emf);
+    (reinterpret_cast<Manager *>(ctx))->detachHandler(phidget_handle);
 }
 
 }  // namespace phidgets

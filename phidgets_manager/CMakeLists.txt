@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.5)
-project(phidgets_helloworld)
+project(phidgets_manager)
 
 # Default to C++14
 if(NOT CMAKE_CXX_STANDARD)
@@ -17,17 +17,17 @@ find_package(rclcpp_components REQUIRED)
 
 include_directories(include)
 
-add_library(phidgets_helloworld SHARED src/helloworld_ros_i.cpp)
-ament_target_dependencies(phidgets_helloworld
+add_library(phidgets_manager SHARED src/manager_ros_i.cpp)
+ament_target_dependencies(phidgets_manager
   phidgets_api
   rclcpp
   rclcpp_components
 )
 
-rclcpp_components_register_nodes(phidgets_helloworld
-  "phidgets::HelloworldRosI")
+rclcpp_components_register_nodes(phidgets_manager
+  "phidgets::ManagerRosI")
 
-install(TARGETS phidgets_helloworld
+install(TARGETS phidgets_manager
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib
   RUNTIME DESTINATION bin
