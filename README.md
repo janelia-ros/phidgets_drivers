@@ -136,3 +136,8 @@ To check formatting after modifying source code:
 To reformat source code:
 
     find . -name '*.h' -or -name '*.hpp' -or -name '*.cpp' | xargs clang-format-6.0 -i -style=file $1
+
+Docker
+------
+
+    docker build https://github.com/janelia-ros/phidgets_drivers.git#helloworld -f Dockerfile-dashing
