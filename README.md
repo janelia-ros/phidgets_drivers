@@ -140,4 +140,5 @@ To reformat source code:
 Docker
 ------
 
-    docker build https://github.com/janelia-ros/phidgets_drivers.git#manager -f Dockerfile-dashing
+    docker build -t ros-phidgets-drivers . -f Dockerfile-dashing
+    docker run -it --rm --privileged -v /dev/bus/usb:/dev/bus/usb ros-phidgets-drivers
