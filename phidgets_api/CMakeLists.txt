@@ -27,6 +27,7 @@ add_library(phidgets_api src/accelerometer.cpp
                          src/encoders.cpp
                          src/gyroscope.cpp
                          src/ir.cpp
+                         src/manager.cpp
                          src/magnetometer.cpp
                          src/motor.cpp
                          src/motors.cpp

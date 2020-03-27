@@ -49,6 +49,10 @@ class Manager final
 
     ~Manager();
 
+    void getDeviceName(PhidgetHandle phidget_handle, const char **name);
+    void getDeviceSerialNumber(PhidgetHandle phidget_handle,
+                               int32_t *serial_number);
+
     void attachHandler(PhidgetHandle phidget_handle) const;
 
     void detachHandler(PhidgetHandle phidget_handle) const;

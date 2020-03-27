@@ -34,6 +34,8 @@ namespace phidgets {
 ManagerRosI::ManagerRosI(const rclcpp::NodeOptions& options)
     : rclcpp::Node("phidgets_manager_node", options)
 {
+    setvbuf(stdout, nullptr, _IONBF, BUFSIZ);
+
     RCLCPP_INFO(get_logger(), "Starting Phidgets Manager");
 
     // We take the mutex here and don't unlock until the end of the constructor
@@ -60,12 +62,13 @@ ManagerRosI::ManagerRosI(const rclcpp::NodeOptions& options)
 
 void ManagerRosI::attachCallback(PhidgetHandle phidget_handle)
 {
+    std::lock_guard<std::mutex> lock(manager_mutex_);
     std::stringstream ss;
     int serial_number;
     const char* name;
 
-    Phidget_getDeviceName(phidget_handle, &name);
-    Phidget_getDeviceSerialNumber(phidget_handle, &serial_number);
+    manager_->getDeviceName(phidget_handle, &name);
+    manager_->getDeviceSerialNumber(phidget_handle, &serial_number);
 
     ss << "Attached Phidget: " << name << ", Serial Number: " << serial_number
        << "\n";
@@ -74,12 +77,13 @@ void ManagerRosI::attachCallback(PhidgetHandle phidget_handle)
 
 void ManagerRosI::detachCallback(PhidgetHandle phidget_handle)
 {
+    std::lock_guard<std::mutex> lock(manager_mutex_);
     std::stringstream ss;
     int serial_number;
     const char* name;
 
-    Phidget_getDeviceName(phidget_handle, &name);
-    Phidget_getDeviceSerialNumber(phidget_handle, &serial_number);
+    manager_->getDeviceName(phidget_handle, &name);
+    manager_->getDeviceSerialNumber(phidget_handle, &serial_number);
 
     ss << "Detached Phidget: " << name << ", Serial Number: " << serial_number
        << "\n";

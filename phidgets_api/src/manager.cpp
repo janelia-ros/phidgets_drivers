@@ -68,6 +68,17 @@ Manager::~Manager()
     PhidgetManager_delete(&manager_handle_);
 }
 
+void Manager::getDeviceName(PhidgetHandle phidget_handle, const char **name)
+{
+    Phidget_getDeviceName(phidget_handle, name);
+}
+
+void Manager::getDeviceSerialNumber(PhidgetHandle phidget_handle,
+                                    int32_t *serial_number)
+{
+    Phidget_getDeviceSerialNumber(phidget_handle, serial_number);
+}
+
 void Manager::attachHandler(PhidgetHandle phidget_handle) const
 {
     attach_handler_(phidget_handle);
