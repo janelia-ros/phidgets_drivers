@@ -37,7 +37,7 @@
 #include <rclcpp/rclcpp.hpp>
 #include <std_msgs/msg/bool.hpp>
 
-#include "phidgets_api/toggle_direct.hpp"
+#include "phidgets_api/digital_inputs.hpp"
 
 namespace phidgets {
 
@@ -52,7 +52,7 @@ class ToggleDirectRosI final : public rclcpp::Node
     explicit ToggleDirectRosI(const rclcpp::NodeOptions& options);
 
   private:
-    std::unique_ptr<ToggleDirect> dis_;
+    std::unique_ptr<DigitalInputs> dis_;
     std::mutex di_mutex_;
     std::vector<ValToPub> val_to_pubs_;
 

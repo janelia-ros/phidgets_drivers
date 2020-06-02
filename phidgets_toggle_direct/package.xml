@@ -6,6 +6,7 @@
 
   <license>BSD</license>
 
+  <maintainer email="martin.guenther@dfki.de">Martin Günther</maintainer>
   <author>Peter Polidoro</author>
 
   <buildtool_depend>ament_cmake_ros</buildtool_depend>

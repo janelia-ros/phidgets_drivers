@@ -136,3 +136,11 @@ To check formatting after modifying source code:
 To reformat source code:
 
     find . -name '*.h' -or -name '*.hpp' -or -name '*.cpp' | xargs clang-format-6.0 -i -style=file $1
+
+Docker
+------
+
+    docker build -f Dockerfile-dashing -t phidgets:1.0 .
+    docker run -it --privileged -v /dev/bus/usb:/dev/bus/usb phidgets:1.0
+    source install/setup.bash
+    ros2 launch phidgets_toggle_direct toggle_direct-launch.py

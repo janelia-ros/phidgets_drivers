@@ -78,7 +78,7 @@ ToggleDirectRosI::ToggleDirectRosI(const rclcpp::NodeOptions& options)
     uint32_t n_in;
     try
     {
-        dis_ = std::make_unique<ToggleDirect>(
+        dis_ = std::make_unique<DigitalInputs>(
             serial_num, hub_port, is_hub_port_device,
             std::bind(&ToggleDirectRosI::stateChangeCallback, this,
                       std::placeholders::_1, std::placeholders::_2));
@@ -147,6 +147,7 @@ void ToggleDirectRosI::stateChangeCallback(int index, int input_value)
         {
             publishLatest(index);
         }
+        RCLCPP_INFO(get_logger(), "State: %d", input_value);
     }
 }
 
