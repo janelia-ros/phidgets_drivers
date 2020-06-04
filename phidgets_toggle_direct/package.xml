@@ -11,10 +11,10 @@
 
   <buildtool_depend>ament_cmake_ros</buildtool_depend>
 
-  <depend>phidgets_api</depend>
   <depend>rclcpp</depend>
   <depend>rclcpp_components</depend>
-  <depend>std_msgs</depend>
+  <depend>libphidget22</depend>
+  <depend>phidgets_api</depend>
 
   <exec_depend>launch</exec_depend>
 

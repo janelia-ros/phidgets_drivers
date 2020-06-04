@@ -140,7 +140,8 @@ To reformat source code:
 Docker
 ------
 
-    docker build -f Dockerfile-dashing -t phidgets:1.0 .
-    docker run -it --privileged -v /dev/bus/usb:/dev/bus/usb phidgets:1.0
+    docker build -f Dockerfile-dashing-dep -t phidgets_dep:1.0 .
+    docker build -f Dockerfile-dashing-build -t phidgets_build:1.0 .
+    docker run -it --privileged -v /dev/bus/usb:/dev/bus/usb phidgets_build:1.0
     source install/setup.bash
     ros2 launch phidgets_toggle_direct toggle_direct-launch.py

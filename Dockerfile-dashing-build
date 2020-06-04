@@ -1,0 +1,7 @@
+FROM phidgets_dep:1.0
+
+COPY . /ws/src/phidgets_drivers
+WORKDIR /ws
+
+RUN /bin/bash -c "source /opt/ros/dashing/setup.bash && \
+    colcon build --parallel-workers 1 --packages-select phidgets_api phidgets_toggle_direct"

@@ -30,39 +30,33 @@
 #ifndef PHIDGETS_TOGGLE_DIRECT_ROS_I_HPP
 #define PHIDGETS_TOGGLE_DIRECT_ROS_I_HPP
 
-#include <memory>
-#include <mutex>
-#include <vector>
-
 #include <rclcpp/rclcpp.hpp>
-#include <std_msgs/msg/bool.hpp>
+#include <rclcpp_components/register_node_macro.hpp>
 
-#include "phidgets_api/digital_inputs.hpp"
+#include <libphidget22/phidget22.h>
+#include "phidgets_api/phidget22.hpp"
+
+#include <mutex>
+
 
 namespace phidgets {
-
-struct ValToPub {
-    rclcpp::Publisher<std_msgs::msg::Bool>::SharedPtr pub;
-    bool last_val;
-};
 
 class ToggleDirectRosI final : public rclcpp::Node
 {
   public:
     explicit ToggleDirectRosI(const rclcpp::NodeOptions& options);
+    ~ToggleDirectRosI();
+
+    void stateChangeHandler(int state);
+    void setOutputState(bool state) const;
 
   private:
-    std::unique_ptr<DigitalInputs> dis_;
-    std::mutex di_mutex_;
-    std::vector<ValToPub> val_to_pubs_;
+    PhidgetDigitalInputHandle di_handle_{nullptr};
+    PhidgetDigitalOutputHandle do_handle_{nullptr};
+    std::mutex mutex_;
 
-    void timerCallback();
-    rclcpp::TimerBase::SharedPtr timer_;
-    double publish_rate_;
-
-    void publishLatest(int index);
-
-    void stateChangeCallback(int index, int input_value);
+    static void StateChangeHandler(PhidgetDigitalInputHandle input_handle,
+                                   void *ctx, int state);
 };
 
 }  // namespace phidgets

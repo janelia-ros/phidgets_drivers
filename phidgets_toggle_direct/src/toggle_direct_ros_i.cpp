@@ -27,17 +27,6 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <chrono>
-#include <functional>
-#include <memory>
-#include <mutex>
-#include <stdexcept>
-
-#include <rclcpp/rclcpp.hpp>
-#include <rclcpp_components/register_node_macro.hpp>
-#include <std_msgs/msg/bool.hpp>
-
-#include "phidgets_api/digital_input.hpp"
 #include "phidgets_toggle_direct/toggle_direct_ros_i.hpp"
 
 namespace phidgets {
@@ -52,102 +41,93 @@ ToggleDirectRosI::ToggleDirectRosI(const rclcpp::NodeOptions& options)
     int serial_num =
         this->declare_parameter("serial", -1);  // default open any device
 
-    int hub_port = this->declare_parameter(
-        "hub_port", 0);  // only used if the device is on a VINT hub_port
+    int input_hub_port = this->declare_parameter(
+        "input_hub_port", 0);
 
-    // only used if the device is on a VINT hub_port
-    bool is_hub_port_device =
+    bool input_is_hub_port_device =
         this->declare_parameter("is_hub_port_device", false);
 
-    publish_rate_ = this->declare_parameter("publish_rate", 0.0);
-    if (publish_rate_ > 1000.0)
-    {
-        throw std::runtime_error("Publish rate must be <= 1000");
-    }
+    constexpr int input_channel = 0;
+
+    int output_hub_port = this->declare_parameter(
+        "output_hub_port", 5);
+
+    bool output_is_hub_port_device =
+        this->declare_parameter("is_hub_port_device", true);
+
+    constexpr int output_channel = 0;
+
+    std::lock_guard<std::mutex> lock(mutex_);
 
     RCLCPP_INFO(
         get_logger(),
         "Connecting to Phidgets ToggleDirect serial %d, hub port %d ...",
-        serial_num, hub_port);
+        serial_num, input_hub_port);
 
-    // We take the mutex here and don't unlock until the end of the constructor
-    // to prevent a callback from trying to use the publisher before we are
-    // finished setting up.
-    std::lock_guard<std::mutex> lock(di_mutex_);
-
-    uint32_t n_in;
-    try
+    PhidgetReturnCode ret = PhidgetDigitalInput_create(&di_handle_);
+    if (ret != EPHIDGET_OK)
     {
-        dis_ = std::make_unique<DigitalInputs>(
-            serial_num, hub_port, is_hub_port_device,
-            std::bind(&ToggleDirectRosI::stateChangeCallback, this,
-                      std::placeholders::_1, std::placeholders::_2));
-
-        n_in = dis_->getInputCount();
-        RCLCPP_INFO(get_logger(), "Connected to serial %d, %u inputs",
-                    dis_->getSerialNumber(), n_in);
-        val_to_pubs_.resize(n_in);
-        for (uint32_t i = 0; i < n_in; i++)
-        {
-            char topicname[100];
-            snprintf(topicname, sizeof(topicname), "digital_input%02d", i);
-            val_to_pubs_[i].pub =
-                this->create_publisher<std_msgs::msg::Bool>(topicname, 1);
-            val_to_pubs_[i].last_val = dis_->getInputValue(i);
-        }
-    } catch (const Phidget22Error& err)
-    {
-        RCLCPP_ERROR(get_logger(), "ToggleDirect: %s", err.what());
-        throw;
+        throw Phidget22Error(
+          "Failed to create DigitalInput handle ",
+            ret);
     }
 
-    if (publish_rate_ > 0.0)
+    helpers::openWaitForAttachment(reinterpret_cast<PhidgetHandle>(di_handle_),
+                                   serial_num, input_hub_port, input_is_hub_port_device,
+                                   input_channel);
+    ret = PhidgetDigitalInput_setOnStateChangeHandler(di_handle_,
+                                                      StateChangeHandler, this);
+    if (ret != EPHIDGET_OK)
     {
-        double pub_msec = 1000.0 / publish_rate_;
-        timer_ = this->create_wall_timer(
-            std::chrono::milliseconds(static_cast<int64_t>(pub_msec)),
-            std::bind(&ToggleDirectRosI::timerCallback, this));
-    } else
-    {
-        // If we are *not* publishing periodically, then we are event driven and
-        // will only publish when something changes (where "changes" is defined
-        // by the libphidget22 library).  In that case, make sure to publish
-        // once at the beginning to make sure there is *some* data.
-        for (uint32_t i = 0; i < n_in; ++i)
-        {
-            publishLatest(i);
-        }
+        throw Phidget22Error(
+          "Failed to set change handler for DigitalInput",
+            ret);
     }
-}
 
-void ToggleDirectRosI::publishLatest(int index)
-{
-    auto msg = std::make_unique<std_msgs::msg::Bool>();
-    msg->data = val_to_pubs_[index].last_val;
-    val_to_pubs_[index].pub->publish(std::move(msg));
-}
+    RCLCPP_INFO(
+        get_logger(),
+        "Connecting to Phidgets DigitalInputs serial %d, hub port %d ...",
+        serial_num, output_hub_port);
 
-void ToggleDirectRosI::timerCallback()
-{
-    std::lock_guard<std::mutex> lock(di_mutex_);
-    for (int i = 0; i < static_cast<int>(val_to_pubs_.size()); ++i)
+    ret = PhidgetDigitalOutput_create(&do_handle_);
+    if (ret != EPHIDGET_OK)
     {
-        publishLatest(i);
+        throw Phidget22Error(
+          "Failed to create DigitalOutput handle",
+            ret);
     }
+
+    helpers::openWaitForAttachment(reinterpret_cast<PhidgetHandle>(do_handle_),
+                                   serial_num, output_hub_port, output_is_hub_port_device,
+                                   output_channel);
+
 }
 
-void ToggleDirectRosI::stateChangeCallback(int index, int input_value)
+ToggleDirectRosI::~ToggleDirectRosI()
 {
-    if (static_cast<int>(val_to_pubs_.size()) > index)
-    {
-        std::lock_guard<std::mutex> lock(di_mutex_);
-        val_to_pubs_[index].last_val = input_value == 0;
+    PhidgetHandle handle = reinterpret_cast<PhidgetHandle>(di_handle_);
+    helpers::closeAndDelete(&handle);
+}
 
-        if (publish_rate_ <= 0.0)
-        {
-            publishLatest(index);
-        }
-        RCLCPP_INFO(get_logger(), "State: %d", input_value);
+void ToggleDirectRosI::stateChangeHandler(int state)
+{
+  std::lock_guard<std::mutex> lock(mutex_);
+  RCLCPP_INFO(get_logger(), "State: %d", state);
+  setOutputState(state);
+}
+
+void ToggleDirectRosI::StateChangeHandler(
+    PhidgetDigitalInputHandle /* input_handle */, void *ctx, int state)
+{
+    (reinterpret_cast<ToggleDirectRosI *>(ctx))->stateChangeHandler(state);
+}
+
+void ToggleDirectRosI::setOutputState(bool state) const
+{
+    PhidgetReturnCode ret = PhidgetDigitalOutput_setState(do_handle_, state);
+    if (ret != EPHIDGET_OK)
+    {
+        throw Phidget22Error("Failed to set start for DigitalOutput", ret);
     }
 }
 

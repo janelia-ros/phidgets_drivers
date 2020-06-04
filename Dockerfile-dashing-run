@@ -1,0 +1,4 @@
+FROM phidgets_build:1.0
+
+RUN /bin/bash -c "source /ws/install/setup.bash && \
+    ros2 launch phidgets_toggle_direct toggle_direct-launch.py"

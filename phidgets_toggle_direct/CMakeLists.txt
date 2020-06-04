@@ -11,19 +11,19 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 endif()
 
 find_package(ament_cmake_ros REQUIRED)
-find_package(phidgets_api REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(rclcpp_components REQUIRED)
-find_package(std_msgs REQUIRED)
+find_package(libphidget22 REQUIRED)
+find_package(phidgets_api REQUIRED)
 
 include_directories(include)
 
 add_library(phidgets_toggle_direct SHARED src/toggle_direct_ros_i.cpp)
 ament_target_dependencies(phidgets_toggle_direct
-  phidgets_api
   rclcpp
   rclcpp_components
-  std_msgs
+  libphidget22
+  phidgets_api
 )
 
 rclcpp_components_register_nodes(phidgets_toggle_direct
